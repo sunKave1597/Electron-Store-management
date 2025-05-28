@@ -14,9 +14,10 @@ function createWindow() {
         },
     });
 
+    win.webContents.openDevTools({ mode: "detach" });
+
     win.setMenu(null);
     win.loadFile('pages/menu.html');
-    win.webContents.openDevTools()
 }
 
 app.whenReady().then(createWindow);
