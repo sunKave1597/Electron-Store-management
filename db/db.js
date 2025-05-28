@@ -6,14 +6,14 @@ const { app } = require("electron");
 const dbFolder = app.getPath("userData");
 const dbPath = path.join(dbFolder, "app.db");
 
-console.log("📂 Database path:", dbPath);
+console.log("Database path:", dbPath);
 
 if (!fs.existsSync(dbPath)) {
   fs.writeFileSync(dbPath, "");
 }
 
 const db = new sqlite3.Database(dbPath, (err) => {
-  if (err) return console.error("❌ เปิด DB ไม่ได้:", err.message);
+  if (err) return console.error("เปิด DB ไม่ได้:", err.message);
 });
 
 db.serialize(() => {
@@ -42,18 +42,18 @@ db.serialize(() => {
       cost_total INTEGER NOT NULL
     )
   `, () => {
-    console.log("✅ Tables created (if not exists)");
+    console.log("Tables created (if not exists)");
   });
 
   db.get("SELECT COUNT(*) AS count FROM products", (err, row) => {
     if (err) return console.error(err);
 
-    console.log("🧮 row products:", row.count);
+    console.log("row products:", row.count);
 
     if (row.count === 0) {
       db.run("INSERT INTO products (name, sell_price) VALUES (?, ?)", ["โค้ก", 25]);
       db.run("INSERT INTO products (name, sell_price) VALUES (?, ?)", ["น้ำเปล่า", 10], () => {
-        console.log("🥤 Mock product data added");
+        console.log("Mock product data added");
       });
     }
   });
