@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>กรอกรายรับ</title>
+    <link rel="stylesheet" href="add-income.css" />
+    <link rel="stylesheet" href="../assest/flatpickr/dist/flatpickr.min.css" />
+    <script src="../assest/flatpickr/dist/flatpickr.min.js"></script>
+    <script src="../assest/flatpickr/dist/plugins/monthSelect/index.js"></script>
+    <link rel="stylesheet" href="../assest/flatpickr/dist/plugins/monthSelect/style.css" />
+    <script src="../assest/flatpickr/dist/l10n/th.js"></script>
+    <style>
+        input[type="hidden"].flatpickr-hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+
+
+</head>
+
+<body>
+    <div style="margin-right: 200px;">
+        <div id="toast">บันทึกเรียบร้อยแล้ว</div>
+
+        <h1>💵 กรอกรายรับ</h1>
+        <form id="income-form">
+            <div class="form-top">
+                <h2 for="date">📅 วันที่</h2>
+                <input type="text" id="date" class="date-input" placeholder="เลือกวันที่" required>
+                <button type="button" id="add-item-btn">➕ เพิ่มรายการ</button>
+                <button type="sb">💾 บันทึกทั้งหมด</button>
+            </div>
+            <div class="table-header">
+                <div>สินค้า</div>
+                <div>จำนวน</div>
+                <div>ราคาขาย</div>
+                <div>ลบ</div>
+            </div>
+            <div id="items-container">
+                <div class="item-row">
+                    <select class="product-select" required></select>
+                    <input type="number" class="qty" placeholder="จำนวน" required step="any">
+                    <input type="number" class="sell-price" placeholder="ราคาขาย" required>
+                    <button type="button" class="remove-item-btn">ลบ</button>
+                </div>
+            </div>
+        </form>
+
+        <div class="card" style="margin-top: 20px; max-width:1100px; ">
+            <div class="card-header">
+                <h2>📊 ข้อมูลรายรับย้อนหลัง</h2>
+
+                <input type="text" id="month-filter" class="date-input" placeholder="เลือกเดือน" style="width: auto;" />
+            </div>
+            <div class="card-body">
+                <div class="table-scroll">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>วันที่</th>
+                                <th>สินค้า</th>
+                                <th>จำนวน</th>
+                                <th>ราคาขาย</th>
+                                <th>รวม</th>
+                                <th>ลบ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-table">
+                        </tbody>
+                    </table>
+                </div>
+                <p id="month-total" style="margin-top: 10px; font-weight: bold;">
+                    รวมทั้งหมด: 0 บาท</p>
+            </div>
+        </div>
+    </div>
+    <div id="sidebar-placeholder"></div>
+    <script>
+        fetch("../nav.html")
+            .then((res) => res.text())
+            .then((html) => {
+                document.getElementById("sidebar-placeholder").innerHTML = html;
+            });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/th.js"></script>
+    <script>
+        flatpickr("#date", {
+            dateFormat: "Y-m-d",
+            defaultDate: "today",
+            locale: "th"
+        });
+        flatpickr("#month-filter", {
+            plugins: [new monthSelectPlugin({ shorthand: true, dateFormat: "Y-m", altFormat: "F Y" })],
+            locale: "th"
+        });
+    </script>
+    <script src="../renderer/add-income.js"></script>
+</body>
+
+</html>

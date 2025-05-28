@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <title>จัดการสินค้า</title>
+    <link rel="stylesheet" href="manage-products.css">
+</head>
+
+<body>
+    <div style="margin-right: 200px;">
+        <h1>📦 จัดการสินค้า</h1>
+
+        <div class="card" style="max-width: 1100px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <input type="text" class="input-sty" id="search" placeholder="🔍 ค้นหาสินค้า...">
+                </div>
+                <div>
+                    <label> ชื่อสินค้า</label>
+                    <input class="input-sty" type="text" id="name" required>
+                    <label> ราคาขาย</label>
+                    <input class="input-sty" type="number" id="sell" required min="0" step="1">
+                    <button id="addBtn" type="sb">➕ เพิ่มสินค้า</button>
+                </div>
+            </div>
+            <table class="product-table">
+                <thead>
+                    <tr>
+                        <th>ชื่อสินค้า</th>
+                        <th>ราคาขาย</th>
+                        <th>จัดการ</th>
+                    </tr>
+                </thead>
+                <tbody id="product-list"></tbody>
+            </table>
+            <div id="toast">บันทึกเรียบร้อยแล้ว</div>
+            <div id="sidebar-placeholder"></div>
+        </div>
+    </div>
+    <script src="../renderer/manage-products.js">
+
+
+    </script>
+    <script>
+        fetch('../nav.html')
+            .then(res => res.text())
+            .then(html => {
+                document.getElementById('sidebar-placeholder').innerHTML = html;
+            });
+    </script>
+</body>
+
+</html>

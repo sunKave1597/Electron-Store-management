@@ -1,0 +1,45 @@
+{
+  "name": "AccountingApp",
+  "version": "1.0.0",
+  "description": "AccountingApp by Sunny",
+  "author": "Sunny",
+  "main": "main.js",
+  "build": {
+    "appId": "com.sunny.electronapp",
+    "productName": "AccountingApp By Sunny",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "**/*",
+      "!dist",
+      "!node_modules/.cache",
+      "node_modules/sqlite3/**/*"
+    ],
+    "win": {
+      "target": "nsis",
+      "signAndEditExecutable": false
+    },
+    "mac": {
+      "target": "dmg"
+    },
+    "linux": {
+      "target": "AppImage"
+    }
+  },
+  "scripts": {
+    "start": "electron .",
+    "rebuild": "electron-rebuild",
+    "build": "npm run rebuild && electron-builder"
+  },
+  "devDependencies": {
+    "electron": "^36.2.0",
+    "electron-builder": "^26.0.0",
+    "electron-rebuild": "^3.2.9"
+  },
+  "dependencies": {
+    "chart.js": "^4.4.9",
+    "flatpickr": "^4.6.13",
+    "sqlite3": "^5.1.7"
+  }
+}

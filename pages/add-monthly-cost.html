@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <title>เพิ่มต้นทุนรายเดือน</title>
+    <link rel="stylesheet" href="add-monthly-cost.css">
+    <link rel="stylesheet" href="../assest/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="../assest/flatpickr/dist/plugins/monthSelect/style.css">
+    <script src="../assest/flatpickr/dist/flatpickr.min.js"></script>
+    <script src="../assest/flatpickr/dist/plugins/monthSelect/index.js"></script>
+    <script src="../assest/flatpickr/dist/l10n/th.js"></script>
+    <style>
+        input[type="hidden"].flatpickr-hidden {
+            display: none !important;
+        }
+    </style>
+
+</head>
+
+<body>
+    <div style="margin-right: 200px;">
+        <h1>💰 กรอกรายจ่ายรายเดือน</h1>
+        <form id="cost-form" style="padding-top: 14px;">
+            <h2>📊 เพิ่มรายจ่ายรายเดือน</h2>
+            <label>เลือกเดือน</label>
+            <input type="text" id="month" required>
+
+            <label> ต้นทุนรวม</label>
+            <input type="number" id="cost" required min="0">
+
+            <button type="submit">💾 บันทึกต้นทุน</button>
+        </form>
+
+        <div id="toast">บันทึกเรียบร้อยแล้ว</div>
+
+        <form style="margin-top: 50px;">
+            <h2>📊 ตารางรายจ่ายตามเดือน</h2>
+            <label>ค้นหา (ปีหรือเดือน): <input type="text" id="filterText" placeholder="เช่น 2025 หรือ 2025-06"></label>
+            <table>
+                <thead>
+                    <tr>
+                        <th>เดือน</th>
+                        <th>ต้นทุนรวม (บาท)</th>
+                    </tr>
+                </thead>
+                <tbody id="cost-table-body"></tbody>
+            </table>
+        </form>
+
+    </div>
+
+    <div id="sidebar-placeholder"></div>
+    <script src="../renderer/add-monthly-cost.js"></script>
+    <script>
+        fetch('../nav.html')
+            .then(res => res.text())
+            .then(html => {
+                document.getElementById('sidebar-placeholder').innerHTML = html;
+            });
+
+        flatpickr("#month", {
+            locale: 'th',
+            plugins: [new monthSelectPlugin({ shorthand: true, dateFormat: "Y-m" })],
+            defaultDate: new Date(),
+        });
+    </script>
+</body>
+
+</html>

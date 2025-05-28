@@ -1,0 +1,221 @@
+body {
+    font-family: 'Segoe UI', sans-serif;
+    background: #f4f6f9;
+    padding: 30px;
+}
+
+h1 {
+    text-align: center;
+    color: #2c3e50;
+    margin-bottom: 20px;
+}
+
+form {
+    max-width: 1100px;
+    margin: auto;
+    background: #fff;
+    padding: 20px 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.form-top {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.form-top input[type="date"] {
+    padding: 8px 12px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+}
+
+.form-top button {
+    background: #3498db;
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.form-top button:hover {
+    background-color: #2980b9;
+}
+
+.table-header {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1.2fr 1.2fr auto;
+    gap: 10px;
+    font-weight: bold;
+    background-color: #f1f1f1;
+    padding: 10px;
+    border-radius: 6px;
+    margin-bottom: 10px;
+}
+
+.table-header div {
+    text-align: center;
+}
+
+.item-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1.2fr 1.2fr auto;
+    gap: 25px;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.item-row select,
+.item-row input {
+    padding: 6px 8px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    width: 100%;
+}
+
+.item-row .remove-item-btn {
+    background: #e74c3c;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+
+.item-row .remove-item-btn:hover {
+    background: #c0392b;
+}
+
+.bottom-link {
+    text-align: center;
+    margin-top: 30px;
+}
+
+.bottom-link button {
+    background-color: #95a5a6;
+}
+
+.bottom-link button:hover {
+    background-color: #7f8c8d;
+}
+
+.date-input {
+    padding: 10px 12px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 14px;
+    width: 200px;
+    box-sizing: border-box;
+    background-color: white;
+    transition: border-color 0.2s;
+}
+
+.date-input:focus {
+    border-color: #3498db;
+    outline: none;
+}
+
+.flatpickr-calendar {
+    font-family: 'Segoe UI', sans-serif;
+    z-index: 9999;
+
+}
+
+.flatpickr-day.selected,
+.flatpickr-day.startRange,
+.flatpickr-day.endRange {
+    background: #3498db;
+    color: #fff;
+    border-color: #2980b9;
+}
+
+button[type="sb"] {
+    background-color: #2ecc71;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+button[type="sb"]:hover {
+    background-color: #27ae60;
+}
+#toast {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    background: #34495e;
+    color: white;
+    padding: 20px 30px;
+    font-size: 30px;
+    border-radius: 10px;
+    display: none;
+    z-index: 9999;
+    animation: slide-down 0.5s ease-out;
+}
+
+@keyframes slide-down {
+    from {
+        transform: translateX(0%) translateY(-20px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0%) translateY(0);
+        opacity: 1;
+    }
+}
+.card {
+    max-width: 1100px;
+    margin: auto;
+        background: #fff;
+        padding: 20px 30px;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+.table-scroll {
+    max-height: 290px;
+    overflow-y: auto;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+}
+
+.data-table thead th {
+    position: sticky;
+    top: 0;
+    background: #f1f1f1;
+    z-index: 1;
+}
+.data-table {
+    
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.data-table th,
+.data-table td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: center;
+}
+
+.data-table th {
+    background-color: #f1f1f1;
+    font-weight: bold;
+}

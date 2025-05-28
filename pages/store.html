@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>รายการขาย</title>
+    <link rel="stylesheet" href="store.css" />
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1 class="title">รายการขาย</h1>
+        <button class="create-btn" id="createBillBtn">เพิ่มบิลใหม่</button>
+      </div>
+
+      <div class="bill-info">
+        <p>
+          วันที่:
+          <span id="currentDate"></span>
+        </p>
+        <p>เลขที่บิล:</p>
+      </div>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>ลำดับ</th>
+              <th>ชื่อลูกค้า</th>
+              <th>ยอดรวม</th>
+              <th>เวลา</th>
+              <th>จัดการ</th>
+            </tr>
+          </thead>
+          <tbody id="billsTableBody">
+            <!-- Bill data will be inserted here -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <script>
+      const currentDateElement = document.getElementById("currentDate");
+      const billsTableBody = document.getElementById("billsTableBody");
+      const createBillBtn = document.getElementById("createBillBtn");
+
+      // Fake date for now (no Electron IPC)
+      const today = new Date();
+      const options = { year: "numeric", month: "2-digit", day: "2-digit" };
+      currentDateElement.textContent = today.toLocaleDateString(
+        "th-TH",
+        options
+      );
+
+      // Mocked bill data for demo purposes
+      let bills = [
+        {
+          id: 1,
+          customer_name: "ลูกค้าทั่วไป",
+          total_amount: 150.0,
+          created_at: new Date().toISOString(),
+        },
+        {
+          id: 2,
+          customer_name: null,
+          total_amount: 300.0,
+          created_at: new Date().toISOString(),
+        },
+      ];
+
+      function renderBills() {
+        if (!bills.length) {
+          billsTableBody.innerHTML = `
+          <tr>
+            <td colspan="5" class="py-4">ไม่มีข้อมูลบิล</td>
+          </tr>
+        `;
+          return;
+        }
+
+        billsTableBody.innerHTML = "";
+        bills.forEach((bill, index) => {
+          const row = document.createElement("tr");
+
+          const formattedTime = new Date(bill.created_at).toLocaleString(
+            "th-TH",
+            {
+              year: "numeric",
+              month: "2-digit",
+              day: "2-digit",
+              hour: "2-digit",
+              minute: "2-digit",
+            }
+          );
+
+          row.innerHTML = `
+          <td>${index + 1}</td>
+          <td>${bill.customer_name || "ไม่มีชื่อลูกค้า"}</td>
+          <td>${bill.total_amount.toLocaleString()}</td>
+          <td>${formattedTime}</td>
+          <td><button class="delete-btn">ลบ</button></button></td>
+        `;
+
+          billsTableBody.appendChild(row);
+        });
+      }
+
+      // Simulate creating a new bill
+      createBillBtn.addEventListener("click", () => {
+        const newId = bills.length
+          ? Math.max(...bills.map((b) => b.id)) + 1
+          : 1;
+        const newBill = {
+          id: newId,
+          customer_name: "ลูกค้าทั่วไป",
+          total_amount: 0,
+          created_at: new Date().toISOString(),
+        };
+
+        bills.push(newBill);
+        renderBills();
+      });
+
+      // Initial render
+      renderBills();
+    </script>
+  </body>
+</html>
