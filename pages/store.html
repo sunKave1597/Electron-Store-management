@@ -5,12 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>รายการขาย</title>
     <link rel="stylesheet" href="store.css" />
+    <link rel="stylesheet" href="common.css" />
   </head>
   <body>
+    <button
+      id="backBtn"
+      class="backBtn"
+      onclick="window.location.href='./menu.html'"
+    >
+      Back
+    </button>
     <div class="container">
       <div class="header">
         <h1 class="title">รายการขาย</h1>
-        <button class="create-btn" id="createBillBtn">เพิ่มบิลใหม่</button>
       </div>
 
       <div class="bill-info">
@@ -19,6 +26,9 @@
           <span id="currentDate"></span>
         </p>
         <p>เลขที่บิล:</p>
+      </div>
+      <div class="bill-toolbar">
+        <button class="create-btn" id="createBillBtn">เพิ่มบิลใหม่</button>
       </div>
 
       <div class="table-container">
