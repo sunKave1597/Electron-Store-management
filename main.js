@@ -45,7 +45,7 @@ handleIpc('get-products', () => {
 handleIpc('add-product', (_, name, sellPrice) => {
     return new Promise((resolve, reject) => {
         db.run(
-            "INSERT INTO products (name, sell_price) VALUES (?, ?)",
+            "INSERT INTO products (name, quantity, price) VALUES (?, ?,?)",
             [name, sellPrice],
             function (err) {
                 if (err) return reject(err);
