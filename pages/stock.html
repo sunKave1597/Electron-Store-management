@@ -1,1 +1,33 @@
-stock
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Stock Management</title>
+    <link rel="stylesheet" href="../css/stock.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h1>Stock Management</h1>
+
+      <div class="toolbar">
+        <input type="text" id="searchInput" placeholder="Search product..." />
+        <button id="addProductBtn">Add Product</button>
+      </div>
+
+      <table id="productsTable">
+        <thead>
+          <tr>
+            <th>No</th>
+            <th>Name</th>
+            <th>Quantity</th>
+            <th>Price</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <script src="../renderer/stock.js"></script>
+  </body>
+</html>

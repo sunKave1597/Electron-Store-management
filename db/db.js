@@ -1,62 +1,74 @@
 const sqlite3 = require("sqlite3").verbose();
-const path = require("path");
-const fs = require("fs");
-const { app } = require("electron");
+const { join } = require("path");
+const { existsSync, mkdirSync } = require("fs");
 
-const dbFolder = app.getPath("userData");
-const dbPath = path.join(dbFolder, "app.db");
+const dbFolder = "./userData";
+const dbPath = join(dbFolder, "app.db");
 
-console.log("Database path:", dbPath);
-
-if (!fs.existsSync(dbPath)) {
-  fs.writeFileSync(dbPath, "");
+if (!existsSync(dbFolder)) {
+  mkdirSync(dbFolder, { recursive: true });
 }
 
 const db = new sqlite3.Database(dbPath, (err) => {
-  if (err) return console.error("เปิด DB ไม่ได้:", err.message);
+  if (err) {
+    console.error("Could not open database", err);
+  } else {
+    console.log("Database opened successfully");
+  }
 });
 
+// Create tables
 db.serialize(() => {
   db.run(`
-    CREATE TABLE IF NOT EXISTS income_entries (
+    CREATE TABLE IF NOT EXISTS bills (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      date TEXT NOT NULL,
-      product_name TEXT NOT NULL,
+      items TEXT NOT NULL,
+      price INTEGER NOT NULL,
       quantity INTEGER NOT NULL,
-      sell_price INTEGER NOT NULL
-    )
+      total INTEGER NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
   `);
 
   db.run(`
     CREATE TABLE IF NOT EXISTS products (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
-      sell_price INTEGER NOT NULL
-    )
+      quantity INTEGER NOT NULL DEFAULT 0,
+      price INTEGER NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
   `);
 
-  db.run(`
-    CREATE TABLE IF NOT EXISTS monthly_costs (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      month TEXT NOT NULL UNIQUE,  -- เช่น "2025-05"
-      cost_total INTEGER NOT NULL
-    )
-  `, () => {
-    console.log("Tables created (if not exists)");
-  });
+  // Check if products table is empty
+  db.get("SELECT COUNT(*) AS count FROM products", [], (err, row) => {
+    if (err) {
+      console.error("Error checking product count:", err);
+      return;
+    }
 
-  db.get("SELECT COUNT(*) AS count FROM products", (err, row) => {
-    if (err) return console.error(err);
+    const count = row.count;
 
-    console.log("row products:", row.count);
+    if (count === 0) {
+      db.run(
+        "INSERT INTO products (name, quantity, price) VALUES (?, ?, ?)",
+        ["โค้ก", 2, 25],
+        function (err) {
+          if (err) console.error("Error inserting 'โค้ก':", err);
+          else console.log("Inserted 'โค้ก'");
+        }
+      );
 
-    if (row.count === 0) {
-      db.run("INSERT INTO products (name, sell_price) VALUES (?, ?)", ["โค้ก", 25]);
-      db.run("INSERT INTO products (name, sell_price) VALUES (?, ?)", ["น้ำเปล่า", 10], () => {
-        console.log("Mock product data added");
-      });
+      db.run(
+        "INSERT INTO products (name, quantity, price) VALUES (?, ?, ?)",
+        ["น้ำเปล่า", 3, 10],
+        function (err) {
+          if (err) console.error("Error inserting 'น้ำเปล่า':", err);
+          else console.log("Inserted 'น้ำเปล่า'");
+        }
+      );
     }
   });
 });
 
-module.exports = db;
+module.exports = { db };
