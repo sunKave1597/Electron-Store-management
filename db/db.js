@@ -22,11 +22,26 @@ db.serialize(() => {
   db.run(`
     CREATE TABLE IF NOT EXISTS bills (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
+      bill_number TEXT NOT NULL,
       items TEXT NOT NULL,
-      price INTEGER NOT NULL,
-      quantity INTEGER NOT NULL,
-      total INTEGER NOT NULL,
+      total_amount REAL NOT NULL,
+      received_amount REAL NOT NULL,
+      change_amount REAL NOT NULL,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+  `);
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS bill_items (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      bill_id INTEGER NOT NULL,
+      product_id INTEGER NOT NULL,
+      product_name TEXT NOT NULL,
+      price REAL NOT NULL,
+      quantity INTEGER NOT NULL,
+      total REAL NOT NULL,
+      FOREIGN KEY (bill_id) REFERENCES bills(id),
+      FOREIGN KEY (product_id) REFERENCES products(id)
     );
   `);
 
@@ -35,7 +50,7 @@ db.serialize(() => {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
       quantity INTEGER NOT NULL DEFAULT 0,
-      price INTEGER NOT NULL,
+      price REAL NOT NULL,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
   `);
@@ -71,4 +86,4 @@ db.serialize(() => {
   });
 });
 
-module.exports = db;  
+module.exports = db;

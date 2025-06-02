@@ -28,7 +28,7 @@
         <p>เลขที่บิล: <span id="billNumber"></span></p>
       </div>
       <div class="bill-toolbar">
-        <button class="create-btn" id="createBillBtn">เพิ่มบิลใหม่</button>
+        <button class="create-btn" id="createBillBtn">เพิ่มสินค้าใหม่</button>
       </div>
 
       <div class="table-container">
@@ -46,14 +46,32 @@
             <!-- Bill data will be inserted here -->
           </tbody>
         </table>
+
+        
+      </div>
+      <div class="bill-summary">
+        <div class="summary-row">
+          <label for="totalAmount">รวมทั้งหมด:</label>
+          <input type="number" id="totalAmount" readonly />
+        </div>
+        <div class="summary-row">
+          <label for="receivedAmount">รับเงิน:</label>
+          <input type="number" id="receivedAmount" min="0" />
+        </div>
+        <div class="summary-row">
+          <label for="changeAmount">เงินทอน:</label>
+          <input type="number" id="changeAmount" readonly />
+        </div>
+        <button class="done-btn" id="doneBtn">เสร็จสิ้น</button>
       </div>
     </div>
+  
 
     <!-- Bill Modal -->
     <div id="billModal" class="modal">
       <div class="modal-content">
         <span class="close">&times;</span>
-        <h2>สร้างบิลใหม่</h2>
+        <h2>เพิ่มสินค้าใหม่</h2>
         <form id="billForm">
           <div class="form-group">
             <label for="billProduct">สินค้า</label>
@@ -84,8 +102,8 @@
           <button type="submit" class="create-btn">บันทึก</button>
         </form>
       </div>
-    </div>
 
+     
     <script src="../renderer/store.js"></script>
   </body>
 </html>

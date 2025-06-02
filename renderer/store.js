@@ -9,46 +9,97 @@ const billProduct = document.getElementById("billProduct");
 const billQuantity = document.getElementById("billQuantity");
 const billPrice = document.getElementById("billPrice");
 const billTotal = document.getElementById("billTotal");
+const totalAmount = document.getElementById("totalAmount");
+const receivedAmount = document.getElementById("receivedAmount");
+const changeAmount = document.getElementById("changeAmount");
+const doneBtn = document.getElementById("doneBtn");
 
-// Current date and bill number
 const today = new Date();
 const options = { year: "numeric", month: "2-digit", day: "2-digit" };
-currentDateElement.textContent = today.toLocaleDateString(
-    "th-TH",
-    options
-);
+currentDateElement.textContent = today.toLocaleDateString("th-TH", options);
 
-// Generate a random bill number for demo (in real app, get from database)
-const randomBillNumber =
-    "BILL-" + Math.floor(1000 + Math.random() * 9000);
+const randomBillNumber = "BILL-" + Math.floor(1000 + Math.random() * 9000);
 billNumberElement.textContent = randomBillNumber;
 
-// Mocked products data (in real app, get from database)
-let products = [
-    { id: 1, name: "สินค้า A", price: 150.0, quantity: 10 },
-    { id: 2, name: "สินค้า B", price: 300.0, quantity: 5 },
-    { id: 3, name: "สินค้า C", price: 200.0, quantity: 8 },
-];
-
-// Mocked bills data
 let bills = [];
 
-// Load products into select dropdown
-function loadProducts() {
+async function loadProducts() {
     billProduct.innerHTML = '<option value="">เลือกสินค้า</option>';
-    products.forEach((product) => {
-        const option = document.createElement("option");
-        option.value = product.id;
-        option.textContent = `${product.name
-            } (${product.price.toLocaleString()} บาท)`;
-        billProduct.appendChild(option);
+    try {
+        const products = await window.electronAPI.getProducts();
+        products.forEach((product) => {
+            const option = document.createElement("option");
+            option.value = product.id;
+            option.textContent = `${product.name} (${product.price.toLocaleString()} บาท)`;
+            billProduct.appendChild(option);
+        });
+        window._products = products;
+    } catch (err) {
+        console.error("Failed to load products:", err);
+        billProduct.innerHTML = '<option value="">โหลดสินค้าล้มเหลว</option>';
+    }
+}
+
+function calculateTotal() {
+    if (billPrice.value && billQuantity.value) {
+        const price = parseFloat(billPrice.value);
+        const quantity = parseInt(billQuantity.value);
+        billTotal.value = (price * quantity).toFixed(2);
+    }
+}
+
+function updateBillSummary() {
+    const total = bills.reduce((sum, bill) => sum + bill.total, 0);
+    totalAmount.value = total.toFixed(2);
+
+    if (receivedAmount.value) {
+        const received = parseFloat(receivedAmount.value);
+        const change = received - total;
+        changeAmount.value = change >= 0 ? change.toFixed(2) : "0.00";
+    } else {
+        changeAmount.value = "0.00";
+    }
+}
+
+function renderBills() {
+    billsTableBody.innerHTML = "";
+
+    if (!bills.length) {
+        billsTableBody.innerHTML = `
+            <tr>
+                <td colspan="5" class="py-4">ไม่มีข้อมูล</td>
+            </tr>
+        `;
+    } else {
+        bills.forEach((bill, index) => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td>${index + 1}</td>
+                <td>${bill.productName}</td>
+                <td>${bill.price.toLocaleString()}</td>
+                <td>${bill.quantity}</td>
+                <td><button class="delete-btn" data-id="${bill.id}">ลบ</button></td>
+            `;
+            billsTableBody.appendChild(row);
+        });
+    }
+
+    updateBillSummary();
+
+    document.querySelectorAll(".delete-btn").forEach((btn) => {
+        btn.addEventListener("click", (e) => {
+            const id = parseInt(e.target.dataset.id);
+            if (confirm("คุณแน่ใจที่จะลบรายการนี้?")) {
+                bills = bills.filter((bill) => bill.id !== id);
+                renderBills();
+            }
+        });
     });
 }
 
-// Product selection change handler
 billProduct.addEventListener("change", (e) => {
     const productId = parseInt(e.target.value);
-    const selectedProduct = products.find((p) => p.id === productId);
+    const selectedProduct = (window._products || []).find((p) => p.id === productId);
 
     if (selectedProduct) {
         billPrice.value = selectedProduct.price;
@@ -59,18 +110,8 @@ billProduct.addEventListener("change", (e) => {
     }
 });
 
-// Quantity change handler
 billQuantity.addEventListener("input", calculateTotal);
 
-function calculateTotal() {
-    if (billPrice.value && billQuantity.value) {
-        const price = parseFloat(billPrice.value);
-        const quantity = parseInt(billQuantity.value);
-        billTotal.value = (price * quantity).toFixed(2);
-    }
-}
-
-// Modal handlers
 createBillBtn.addEventListener("click", () => {
     loadProducts();
     billModal.style.display = "block";
@@ -88,7 +129,6 @@ window.addEventListener("click", (event) => {
     }
 });
 
-// Form submission
 billForm.addEventListener("submit", (e) => {
     e.preventDefault();
 
@@ -97,10 +137,9 @@ billForm.addEventListener("submit", (e) => {
     const price = parseFloat(billPrice.value);
     const total = parseFloat(billTotal.value);
 
-    const selectedProduct = products.find((p) => p.id === productId);
+    const selectedProduct = (window._products || []).find((p) => p.id === productId);
 
     if (selectedProduct) {
-        // In real app, save to database via Electron API
         const newBill = {
             id: bills.length ? Math.max(...bills.map((b) => b.id)) + 1 : 1,
             billNumber: randomBillNumber,
@@ -115,48 +154,50 @@ billForm.addEventListener("submit", (e) => {
         bills.push(newBill);
         renderBills();
 
-        alert("บันทึกบิลเรียบร้อยแล้ว");
         billModal.style.display = "none";
         billForm.reset();
     }
 });
 
-// Render bills table
-function renderBills() {
-    billsTableBody.innerHTML = "";
+receivedAmount.addEventListener("input", updateBillSummary);
 
-    if (!bills.length) {
-        billsTableBody.innerHTML = `
-      <tr>
-        <td colspan="5" class="py-4">ไม่มีข้อมูล</td>
-      </tr>
-    `;
+doneBtn.addEventListener("click", async () => {
+    const total = parseFloat(totalAmount.value);
+    const received = parseFloat(receivedAmount.value);
+    const change = parseFloat(changeAmount.value);
+
+    if (isNaN(total) || total <= 0) {
+        alert("ไม่มีรายการสินค้าในบิล");
         return;
     }
 
-    bills.forEach((bill, index) => {
-        const row = document.createElement("tr");
-        row.innerHTML = `
-      <td>${index + 1}</td>
-      <td>${bill.productName}</td>
-      <td>${bill.price.toLocaleString()}</td>
-      <td>${bill.quantity}</td>
-      <td><button class="delete-btn" data-id="${bill.id}">ลบ</button></td>
-    `;
-        billsTableBody.appendChild(row);
-    });
+    if (isNaN(received) || received < total) {
+        alert("จำนวนเงินที่รับไม่เพียงพอ");
+        return;
+    }
 
-    // Attach delete handlers
-    document.querySelectorAll(".delete-btn").forEach((btn) => {
-        btn.addEventListener("click", (e) => {
-            const id = parseInt(e.target.dataset.id);
-            if (confirm("คุณแน่ใจที่จะลบรายการนี้?")) {
-                bills = bills.filter((bill) => bill.id !== id);
-                renderBills();
-            }
-        });
-    });
-}
+    try {
+        const billData = {
+            billNumber: randomBillNumber,
+            totalAmount: total,
+            receivedAmount: received,
+            changeAmount: change,
+            items: bills.map(bill => ({
+                productId: bill.productId,
+                productName: bill.productName,
+                price: bill.price,
+                quantity: bill.quantity,
+                total: bill.total
+            }))
+        };
 
-// Initial render
+        await window.electronAPI.createBill(billData);
+        alert("บันทึกบิลเรียบร้อยแล้ว");
+        window.location.reload();
+    } catch (err) {
+        console.error("Failed to save bill:", err);
+        alert("เกิดข้อผิดพลาดในการบันทึกบิล");
+    }
+});
+
 renderBills();
