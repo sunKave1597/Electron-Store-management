@@ -63,3 +63,39 @@ handleIpc('delete-product', (_, id) => {
         });
     });
 });
+
+ipcMain.handle('add-income', (_, incomeDate, incomeItem, incomeAmount, billNumber) => {
+    console.log("Adding income:", incomeDate, incomeItem, incomeAmount, billNumber);
+  if (!incomeDate || !incomeItem || !incomeAmount || !billNumber) {
+    throw new Error("Fuck you, valid .");
+  }
+
+  return new Promise((resolve, reject) => {
+    db.run(
+      "INSERT INTO income (date, item, amount, bill_number) VALUES (?, ?, ?, ?)",
+      [incomeDate, incomeItem, incomeAmount, billNumber],
+      function (err) {
+        if (err) return reject(err);
+        resolve({ id: this.lastID });
+      }
+    );
+  });
+});
+
+handleIpc('delete-income', (_, id) => {
+    return new Promise((resolve, reject) => {
+        db.run("DELETE FROM income WHERE id = ?", [id], (err) => {
+            if (err) return reject(err);
+            resolve();
+        });
+    });
+});
+ipcMain.handle('get-income', () => {
+  return new Promise((resolve, reject) => {
+    db.all("SELECT * FROM income", (err, rows) => {
+      if (err) return reject(err);
+      resolve(rows);
+    });
+  });
+});
+

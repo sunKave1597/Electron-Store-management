@@ -1,1 +1,51 @@
-income
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Income Management</title>
+    <link rel="stylesheet" href="./income.css" />
+    <link rel="stylesheet" href="./common.css" />
+  </head>
+  <body>
+    <button
+      id="backBtn"
+      class="backBtn"
+      onclick="window.location.href='./menu.html'"
+    >
+      Back
+    </button>
+    <div class="container">
+      <div class="header">
+        <h1 class="title">Income Management</h1>
+      </div>
+
+      <div class="toolbar">
+        <input type="date" id="incomeDate" required />
+        <input type="text" id="incomeItem" placeholder="รายการ" required />
+        <input type="number" id="incomeAmount" placeholder="จำนวนเงิน" min="0" step="0.01" required />
+        <button id="addIncomeBtn">เพิ่มรายการ</button>
+      </div>
+
+    <div class="search-bar">
+      <label for="searchDate">ค้นหาวันที่</label>
+      <input type="date" id="searchDate" />
+      <button id="searchBtn">ค้นหา</button>
+      <button id="clearSearchBtn">ล้าง</button>
+    </div>
+      <table id="productsTable" class="table-container">
+        <thead>
+          <tr>
+            <th>วันที่</th>
+            <th>รายการ</th>
+            <th>เลขบิล</th>
+            <th>จำนวนเงิน</th>
+            <th>จัดการ</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <script src="../renderer/income.js"></script>
+  </body>
+</html>
