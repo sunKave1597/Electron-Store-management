@@ -72,7 +72,7 @@ handleIpc('create-bill', async (_, billData) => {
 
             db.run(
                 `INSERT INTO bills (bill_number, items, total_amount, received_amount, change_amount, created_at) 
-                 VALUES (?, ?, ?, ?, ?, datetime('now'))`,
+                 VALUES (?, ?, ?, ?, ?, strftime('%d-%m-%Y', 'now', 'localtime'))`,
                 [
                     billNumber,
                     items.map(item => `${item.productName} (${item.quantity})`).join(', '),

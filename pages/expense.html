@@ -1,78 +1,76 @@
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>จัดการรายจ่าย</title>
+    <link rel="stylesheet" href="./expense.css" />
+    <link rel="stylesheet" href="./common.css" />
+  </head>
 
-<head>
-  <meta charset="UTF-8" />
-  <title>expense Management</title>
-  <link rel="stylesheet" href="./expense.css" />
-  <link rel="stylesheet" href="./common.css" />
-</head>
+  <body>
+    <button
+      id="backBtn"
+      class="backBtn"
+      onclick="window.location.href='./menu.html'"
+    >
+      Back
+    </button>
+    <div class="container">
+      <div class="header">
+        <h1 class="title">จัดการรายจ่าย</h1>
+      </div>
 
-<body>
-  <button id="backBtn" class="backBtn" onclick="window.location.href='./menu.html'">
-    Back
-  </button>
-  <div class="container">
-    <div class="header">
-      <h1 class="title">Expense Management</h1>
+      <div class="search-container">
+        <label for="searchDate">ค้นหาวันที่</label>
+        <input type="date" id="searchDate" />
+
+        <label for="">ค้นหารายการ</label>
+        <input type="text" id="searchInput" placeholder="ชื่อรายการ" />
+
+        <label for="">จำนวนเงิน</label>
+        <input type="text" id="searchInput" placeholder="ค้นหาจำนวนเงิน" />
+
+        <button id="searchBtn" class="onClik-btn">ค้นหา</button>
+        <button id="clearSearchBtn" class="clear-btn">ล้าง</button>
+        <button id="addExpenseBtn" class="create-btn">เพิ่มรายการ</button>
+      </div>
+
+      <table id="productsTable" class="table-container">
+        <thead>
+          <tr>
+            <th>วันที่</th>
+            <th>รายการ</th>
+            <th>จำนวนเงิน</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
     </div>
 
+    <!-- Expense Modal -->
+    <div id="expenseModal" class="modal">
+      <div class="modal-content">
+        <span id="closeExpenseModal" class="close">&times;</span>
+        <h2>เพิ่มรายการค่าใช้จ่าย</h2>
 
-    <div class="search-container">
-
-
-      <label for="searchDate">ค้นหาวันที่</label>
-      <input type="date" id="searchDate" />
-
-      <label for="">ค้นหารายการ</label>
-      <input type="text" id="" placeholder="ชื่อรายการ" />
-
-      <label for="">จำนวนเงิน</label>
-      <input type="text" id="searchAmount" placeholder="ค้นหาจำนวนเงิน" />
-
-      <button id="searchBtn">ค้นหา</button>
-      <button id="clearSearchBtn">ล้าง</button>
-      <button id="addExpenseBtn">เพิ่มรายการ</button>
+        <form id="expenseForm">
+          <div class="form-group">
+            <label for="expenseItem">ชื่อรายการ</label>
+            <input type="text" id="expenseItem" required />
+          </div>
+          <div class="form-group">
+            <label for="expenseAmount">จำนวนเงิน</label>
+            <input type="number" id="expenseAmount" step="0.01" required />
+          </div>
+          <div class="form-group">
+            <label for="expenseDate">วันที่</label>
+            <input type="date" id="expenseDate" required />
+          </div>
+          <button type="submit" class="create-btn">บันทึก</button>
+        </form>
+      </div>
     </div>
 
-    <table id="productsTable" class="table-container">
-      <thead>
-        <tr>
-          <th>วันที่</th>
-          <th>รายการ</th>
-          <th>จำนวนเงิน</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </div>
-
-<!-- Expense Modal -->
-<div id="expenseModal" class="modal">
-  <div class="modal-content">
-    <span id="closeExpenseModal" class="close">&times;</span>
-    <h2>เพิ่มรายการค่าใช้จ่าย</h2>
-
-    <form id="expenseForm">
-      <div class="form-group">
-        <label for="expenseItem">ชื่อรายการ</label>
-        <input type="text" id="expenseItem" required />
-      </div>
-      <div class="form-group">
-        <label for="expenseAmount">จำนวนเงิน</label>
-        <input type="number" id="expenseAmount" step="0.01" required />
-      </div>
-      <div class="form-group">
-        <label for="expenseDate">วันที่</label>
-        <input type="date" id="expenseDate" required />
-      </div>
-      <button type="submit" class="create-btn">บันทึก</button>
-    </form>
-  </div>
-</div>
-
-
-  <script src="../renderer/expense.js"></script>
-</body>
-
+    <script src="../renderer/expense.js"></script>
+  </body>
 </html>

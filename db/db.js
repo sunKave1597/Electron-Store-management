@@ -22,10 +22,11 @@ db.serialize(() => {
     CREATE TABLE IF NOT EXISTS bills (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       bill_number TEXT NOT NULL,
+      items TEXT NOT NULL,
       total_amount REAL NOT NULL,
       received_amount REAL NOT NULL,
       change_amount REAL NOT NULL,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      created_at TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M','now', 'localtime'))
     );
   `);
 
@@ -52,7 +53,7 @@ db.serialize(() => {
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
   `);
-  
+
   db.run(`
     CREATE TABLE IF NOT EXISTS income (
       id INTEGER PRIMARY KEY AUTOINCREMENT,

@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>Stock Management</title>
+    <title>จัดการร้านค้า</title>
     <link rel="stylesheet" href="./stock.css" />
     <link rel="stylesheet" href="./common.css" />
   </head>
@@ -16,22 +16,22 @@
     </button>
     <div class="container">
       <div class="header">
-        <h1 class="title">Stock Management</h1>
+        <h1 class="title">จัดการร้านค้า</h1>
       </div>
 
       <div class="toolbar">
-        <input type="text" id="searchInput" placeholder="Search product..." />
+        <input type="text" id="searchInput" placeholder="ค้นหาสินค้า..." />
         <button id="addProductBtn" class="create-btn">เพิ่มสินค้า</button>
       </div>
 
       <table id="productsTable" class="table-container">
         <thead>
           <tr>
-            <th>No</th>
-            <th>Name</th>
-            <th>Quantity</th>
-            <th>Price</th>
-            <th>Action</th>
+            <th>ลำดับ</th>
+            <th>รายการ</th>
+            <th>จำนวน</th>
+            <th>ราคา</th>
+            <th>จัดการ</th>
           </tr>
         </thead>
         <tbody></tbody>
@@ -40,18 +40,18 @@
     <div id="productModal" class="modal">
       <div class="modal-content">
         <span class="close">&times;</span>
-        <h2>Add New Product</h2>
+        <h2>เพิ่มสินค้า</h2>
         <form id="productForm">
           <div class="form-group">
-            <label for="productName">Product Name:</label>
+            <label for="productName">ชื่อสินค้า:</label>
             <input type="text" id="productName" required />
           </div>
           <div class="form-group">
-            <label for="productQuantity">Quantity:</label>
+            <label for="productQuantity">จำนวน:</label>
             <input type="number" id="productQuantity" min="0" required />
           </div>
           <div class="form-group">
-            <label for="productPrice">Price:</label>
+            <label for="productPrice">จำนวน:</label>
             <input
               type="number"
               id="productPrice"
@@ -60,7 +60,7 @@
               required
             />
           </div>
-          <button type="submit">Add Product</button>
+          <button type="submit" class="create-btn">เพิ่มสินค้า</button>
         </form>
       </div>
     </div>

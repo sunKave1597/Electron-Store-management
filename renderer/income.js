@@ -1,5 +1,5 @@
 
-document.getElementById('searchBtn').onclick = function () {
+document.getElementById('onClik-btn').onclick = function () {
     const searchDate = document.getElementById('searchDate').value;
     const rows = document.querySelectorAll('#productsTable tbody tr');
     rows.forEach(row => {
@@ -12,14 +12,14 @@ document.getElementById('searchBtn').onclick = function () {
     });
 };
 
-document.getElementById('clearSearchBtn').onclick = function () {
+document.getElementById('clear-btn').onclick = function () {
     document.getElementById('searchDate').value = '';
     const rows = document.querySelectorAll('#productsTable tbody tr');
     rows.forEach(row => row.style.display = '');
 };
 
 function loadIncomeData() {
-    window.electronAPI.getBills() // 
+    window.electronAPI.getBills()
         .then((billsData) => {
             const tableBody = document.querySelector('#productsTable tbody');
             tableBody.innerHTML = '';
@@ -35,15 +35,15 @@ function loadIncomeData() {
                                 <td>${bill.bill_number}</td>
                                 <td>${(bill.total_amount ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
                                 <td>
-                                    <button class="deleteBtn" data-id="${bill.id}">ลบ</button>
-                                    <button class="viewBtn" data-id="${bill.id}">ดู</button>
+                                    <button class="delete-btn" data-id="${bill.id}">ลบ</button>
+                                    <button class="onClik-btn" data-id="${bill.id}">ดู</button>
                                 </td>
                                 `;
 
                 tableBody.appendChild(row);
             });
 
-            document.querySelectorAll('.viewBtn').forEach(button => {
+            document.querySelectorAll('.onClik-btn').forEach(button => {
                 button.onclick = function () {
                     const billId = button.getAttribute('data-id');
 
@@ -85,7 +85,7 @@ function loadIncomeData() {
             });
 
 
-            document.querySelectorAll('.deleteBtn').forEach(button => {
+            document.querySelectorAll('.delete-btn').forEach(button => {
                 button.onclick = function () {
                     const billId = button.getAttribute('data-id');
                     if (confirm('คุณแน่ใจว่าจะลบบิลนี้ใช่ไหม?')) {
