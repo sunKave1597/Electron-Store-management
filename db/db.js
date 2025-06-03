@@ -17,13 +17,11 @@ const db = new sqlite3.Database(dbPath, (err) => {
   }
 });
 
-// Create tables
 db.serialize(() => {
   db.run(`
     CREATE TABLE IF NOT EXISTS bills (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       bill_number TEXT NOT NULL,
-      items TEXT NOT NULL,
       total_amount REAL NOT NULL,
       received_amount REAL NOT NULL,
       change_amount REAL NOT NULL,
@@ -54,16 +52,25 @@ db.serialize(() => {
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
   `);
+  
+  db.run(`
+    CREATE TABLE IF NOT EXISTS income (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      date TEXT NOT NULL,
+      item TEXT NOT NULL,
+      amount REAL NOT NULL,
+      bill_number TEXT NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+  `);
 
-  // Check if products table is empty
+
   db.get("SELECT COUNT(*) AS count FROM products", [], (err, row) => {
     if (err) {
       console.error("Error checking product count:", err);
       return;
     }
-
     const count = row.count;
-
     if (count === 0) {
       db.run(
         "INSERT INTO products (name, quantity, price) VALUES (?, ?, ?)",
@@ -73,7 +80,6 @@ db.serialize(() => {
           else console.log("Inserted 'โค้ก'");
         }
       );
-
       db.run(
         "INSERT INTO products (name, quantity, price) VALUES (?, ?, ?)",
         ["น้ำเปล่า", 3, 10],

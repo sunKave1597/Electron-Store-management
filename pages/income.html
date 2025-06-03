@@ -1,1 +1,76 @@
-income
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Income Management</title>
+  <link rel="stylesheet" href="./income.css" />
+  <link rel="stylesheet" href="./common.css" />
+</head>
+
+<body>
+  <button id="backBtn" class="backBtn" onclick="window.location.href='./menu.html'">
+    Back
+  </button>
+  <div class="container">
+    <div class="header">
+      <h1 class="title">Income Management</h1>
+    </div>
+
+
+    <div class="search-bar">
+      <label for="searchDate">ค้นหาวันที่</label>
+      <input type="date" id="searchDate" />
+
+      <label for="searchBillNumber">ค้นหาเลขบิล</label>
+      <input type="text" id="searchBillNumber" placeholder="เช่น BILL-1234" />
+
+      <button id="searchBtn">ค้นหา</button>
+      <button id="clearSearchBtn">ล้าง</button>
+    </div>
+
+    <table id="productsTable" class="table-container">
+      <thead>
+        <tr>
+          <th>วันที่</th>
+          <th>เลขบิล</th>
+          <th>จำนวนเงิน</th>
+          <th>จัดการ</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <div id="billModal" class="modal">
+    <div class="modal-content">
+      <span id="closeBillModal" class="close">&times;</span>
+      <h2>รายละเอียดบิล</h2>
+
+      <div class="bill-info">
+        <p>เลขที่บิล: <span id="modalBillNumber"></span></p>
+        <p>วันที่: <span id="modalBillDate"></span></p>
+        <p>รวมเงิน: <span id="modalTotalAmount"></span></p>
+        <p>รับเงิน: <span id="modalReceivedAmount"></span></p>
+        <p>เงินทอน: <span id="modalChangeAmount"></span></p>
+      </div>
+
+      <table id="itemsTable" class="table-container">
+        <thead>
+          <tr>
+            <th>สินค้า</th>
+            <th>จำนวน</th>
+            <th>ราคาต่อหน่วย</th>
+            <th>รวม</th>
+          </tr>
+        </thead>
+        <tbody>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script src="../renderer/income.js"></script>
+</body>
+
+</html>

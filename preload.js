@@ -6,5 +6,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
     deleteProduct: (id) => ipcRenderer.invoke('delete-product', id),
     createBill: (billData) => ipcRenderer.invoke('create-bill', billData),
     getBills: () => ipcRenderer.invoke('get-bills'),
-    getBillItems: (billId) => ipcRenderer.invoke('get-bill-items', billId)
+    getBillDetail: (billId) => ipcRenderer.invoke('get-bill-detail', billId),
+    deleteBill: (billId) => ipcRenderer.invoke('delete-bill', billId)
 });

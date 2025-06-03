@@ -63,25 +63,37 @@ handleIpc('delete-product', (_, id) => {
         });
     });
 });
+handleIpc('create-bill', async (_, billData) => {
+    const { billNumber, totalAmount, receivedAmount, changeAmount, items } = billData;
 
-handleIpc('create-bill', (_, billData) => {
     return new Promise((resolve, reject) => {
         db.serialize(() => {
+            db.run('BEGIN TRANSACTION');
+
             db.run(
-                "INSERT INTO bills (bill_number, total_amount, received_amount, change_amount) VALUES (?, ?, ?, ?)",
-                [billData.billNumber, billData.totalAmount, billData.receivedAmount, billData.changeAmount],
+                `INSERT INTO bills (bill_number, items, total_amount, received_amount, change_amount, created_at) 
+                 VALUES (?, ?, ?, ?, ?, datetime('now'))`,
+                [
+                    billNumber,
+                    items.map(item => `${item.productName} (${item.quantity})`).join(', '),
+                    totalAmount,
+                    receivedAmount,
+                    changeAmount
+                ],
                 function (err) {
-                    if (err) return reject(err);
+                    if (err) {
+                        db.run('ROLLBACK');
+                        return reject(err);
+                    }
 
                     const billId = this.lastID;
-                    const items = billData.items;
 
-                    // Insert each bill item
                     const stmt = db.prepare(
-                        "INSERT INTO bill_items (bill_id, product_id, product_name, price, quantity, total) VALUES (?, ?, ?, ?, ?, ?)"
+                        `INSERT INTO bill_items (bill_id, product_id, product_name, price, quantity, total) 
+                         VALUES (?, ?, ?, ?, ?, ?)`
                     );
 
-                    items.forEach(item => {
+                    for (const item of items) {
                         stmt.run(
                             billId,
                             item.productId,
@@ -90,11 +102,18 @@ handleIpc('create-bill', (_, billData) => {
                             item.quantity,
                             item.total
                         );
-                    });
+                    }
 
-                    stmt.finalize(err => {
-                        if (err) return reject(err);
-                        resolve({ id: billId });
+                    stmt.finalize((err) => {
+                        if (err) {
+                            db.run('ROLLBACK');
+                            return reject(err);
+                        }
+
+                        db.run('COMMIT', (err) => {
+                            if (err) return reject(err);
+                            resolve({ billId });
+                        });
                     });
                 }
             );
@@ -104,18 +123,44 @@ handleIpc('create-bill', (_, billData) => {
 
 handleIpc('get-bills', () => {
     return new Promise((resolve, reject) => {
-        db.all("SELECT * FROM bills ORDER BY created_at DESC", (err, rows) => {
+        db.all(
+            `SELECT id, bill_number, items, total_amount, created_at 
+             FROM bills 
+             ORDER BY created_at DESC`,
+            (err, rows) => {
+                if (err) return reject(err);
+                resolve(rows);
+            }
+        );
+    });
+});
+
+handleIpc('get-bill-detail', (_, billId) => {
+    return new Promise((resolve, reject) => {
+        db.get("SELECT * FROM bills WHERE id = ?", [billId], (err, bill) => {
             if (err) return reject(err);
-            resolve(rows);
+
+            db.all("SELECT * FROM bill_items WHERE bill_id = ?", [billId], (err, items) => {
+                if (err) return reject(err);
+
+                resolve({
+                    bill: bill,
+                    items: items
+                });
+            });
         });
     });
 });
 
-handleIpc('get-bill-items', (_, billId) => {
+
+handleIpc('delete-bill', (_, id) => {
     return new Promise((resolve, reject) => {
-        db.all("SELECT * FROM bill_items WHERE bill_id = ?", [billId], (err, rows) => {
+        db.run("DELETE FROM bill_items WHERE bill_id = ?", [id], (err) => {
             if (err) return reject(err);
-            resolve(rows);
+            db.run("DELETE FROM bills WHERE id = ?", [id], (err) => {
+                if (err) return reject(err);
+                resolve();
+            });
         });
     });
 });
