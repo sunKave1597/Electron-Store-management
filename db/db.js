@@ -26,7 +26,8 @@ db.serialize(() => {
       total_amount REAL NOT NULL,
       received_amount REAL NOT NULL,
       change_amount REAL NOT NULL,
-      created_at TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M','now', 'localtime'))
+      date TEXT NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
   `);
 
@@ -50,6 +51,7 @@ db.serialize(() => {
       name TEXT NOT NULL,
       quantity INTEGER NOT NULL DEFAULT 0,
       price REAL NOT NULL,
+      date TEXT NOT NULL,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
   `);
@@ -61,6 +63,7 @@ db.serialize(() => {
       item TEXT NOT NULL,
       amount REAL NOT NULL,
       bill_number TEXT NOT NULL,
+      date TEXT NOT NULL,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
   `);
@@ -71,6 +74,7 @@ db.serialize(() => {
       date TEXT NOT NULL,
       item TEXT NOT NULL,
       amount REAL NOT NULL,
+      date TEXT NOT NULL,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
   `);
