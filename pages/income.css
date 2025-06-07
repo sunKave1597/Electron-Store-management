@@ -60,3 +60,39 @@
 .bill-info p {
   margin: 5px 0;
 }
+
+.cards-container {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  /* Or any other appropriate margin */
+}
+
+.card {
+
+  padding: 1rem;
+  border-radius: 0.5rem;
+  flex-grow: 1;
+  text-align: center;
+}
+
+.card h3 {
+  margin-top: 0;
+  font-size: 1.2rem;
+  color: #374151;
+}
+
+.card div {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #10b981;
+}
+
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+}

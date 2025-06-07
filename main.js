@@ -1,6 +1,6 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
-const { db, dbAll, dbGet } = require('./db/db');
+const { db, dbAll, dbGet, getTotalIncomeDB, getTotalExpensesDB, getReportDataDB } = require('./db/db');
 
 
 function createWindow() {
@@ -45,7 +45,22 @@ handleIpc('get-products', () => {
 
 handleIpc('add-product', (_, name, quantity, price) => {
     return new Promise((resolve, reject) => {
-        const thDate = new Date().toLocaleDateString("th-TH", { year: "numeric", month: "2-digit", day: "2-digit" });
+        const date = new Date();
+
+        const options = {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+            numberingSystem: "latn", // use Western digits
+        };
+
+        const thaiFormatted = new Intl.DateTimeFormat("th-TH", options).formatToParts(date);
+
+        const day = thaiFormatted.find(p => p.type === "day").value;
+        const month = thaiFormatted.find(p => p.type === "month").value;
+        const gregorianYear = date.getFullYear();
+
+        const thDate = `${day}/${month}/${gregorianYear}`;
         db.run(
             "INSERT INTO products (name, quantity, price, date) VALUES (?, ?, ?, ?)",
             [name, quantity, price, thDate],
@@ -69,7 +84,22 @@ handleIpc('create-bill', async (_, billData) => {
     const { billNumber, totalAmount, receivedAmount, changeAmount, items } = billData;
 
     return new Promise((resolve, reject) => {
-        const thDate = new Date().toLocaleDateString("th-TH", { year: "numeric", month: "2-digit", day: "2-digit" });
+        const date = new Date();
+
+        const options = {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+            numberingSystem: "latn", // use Western digits
+        };
+
+        const thaiFormatted = new Intl.DateTimeFormat("th-TH", options).formatToParts(date);
+
+        const day = thaiFormatted.find(p => p.type === "day").value;
+        const month = thaiFormatted.find(p => p.type === "month").value;
+        const gregorianYear = date.getFullYear();
+
+        const thDate = `${day}/${month}/${gregorianYear}`;
         db.serialize(() => {
             db.run('BEGIN TRANSACTION');
 
@@ -171,11 +201,27 @@ handleIpc('delete-bill', (_, id) => {
 
 ipcMain.handle('add-expense', async (event, expenseData) => {
     return new Promise((resolve, reject) => {
-        const { date, item, amount } = expenseData;
+        const { item, amount } = expenseData;
+        const date = new Date();
+
+        const options = {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+            numberingSystem: "latn", // use Western digits
+        };
+
+        const thaiFormatted = new Intl.DateTimeFormat("th-TH", options).formatToParts(date);
+
+        const day = thaiFormatted.find(p => p.type === "day").value;
+        const month = thaiFormatted.find(p => p.type === "month").value;
+        const gregorianYear = date.getFullYear();
+
+        const thDate = `${day}/${month}/${gregorianYear}`;
 
         db.run(
             `INSERT INTO expense (date, item, amount) VALUES (?, ?, ?)`,
-            [date, item, amount],
+            [thDate, item, amount],
             function (err) {
                 if (err) {
                     console.error('Error inserting expense:', err);
@@ -243,5 +289,35 @@ ipcMain.handle('get-monthly-summary', async () => {
      FROM income
      GROUP BY month
      ORDER BY month DESC`);
+});
+
+ipcMain.handle('get-total-income', async () => {
+    try {
+        const result = await getTotalIncomeDB();
+        return result; // Should be { totalIncome: number }
+    } catch (error) {
+        console.error('Error getting total income:', error);
+        throw error; // Propagate error to renderer
+    }
+});
+
+ipcMain.handle('get-total-expenses', async () => {
+    try {
+        const result = await getTotalExpensesDB();
+        return result; // Should be { totalExpenses: number }
+    } catch (error) {
+        console.error('Error getting total expenses:', error);
+        throw error;
+    }
+});
+
+ipcMain.handle('get-report-data', async (event, month) => {
+    try {
+        const result = await getReportDataDB(month);
+        return result;
+    } catch (error) {
+        console.error('Error getting report data:', error);
+        throw error;
+    }
 });
 

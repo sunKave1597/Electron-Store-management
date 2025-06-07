@@ -3,7 +3,7 @@ const expenseModal = document.getElementById('expenseModal');
 const closeExpenseModal = document.getElementById('closeExpenseModal');
 const expenseForm = document.getElementById('expenseForm');
 const expenseDateInput = document.getElementById('expenseDate');
-const expenseItemSelect = document.getElementById('expenseItem'); // Get select element
+const expenseItemSelect = document.getElementById('expenseItem');
 
 async function populateExpenseItemDropdown() {
   try {
@@ -81,22 +81,30 @@ function displayExpenses(expensesToDisplay) {
   const tbody = document.querySelector('#productsTable tbody');
   tbody.innerHTML = ''; // Clear existing rows
 
+  let totalExpense = 0; // Initialize total expense
+
   expensesToDisplay.forEach((expense) => {
+    totalExpense += (expense.amount ?? 0); // Accumulate total amount
     const row = document.createElement('tr');
     row.innerHTML = `
       <td>${expense.date}</td>
       <td>${expense.item}</td>
-      <td>${expense.amount.toFixed(2)}</td>
+      <td>${(expense.amount ?? 0).toFixed(2)}</td>
       <td><button class="delete-btn" data-id="${expense.id}">ลบ</button></td>
     `;
     tbody.appendChild(row);
   });
+
+  const totalExpenseValueElement = document.getElementById('total-expense-value');
+  if (totalExpenseValueElement) {
+    totalExpenseValueElement.textContent = `${totalExpense.toLocaleString(undefined, { minimumFractionDigits: 2 })} บาท`;
+  }
 }
 
 async function loadExpenses() {
   try {
     const expenses = await window.electronAPI.getExpenses();
-    displayExpenses(expenses);
+    displayExpenses(expenses); // This will now also update the card
   } catch (error) {
     console.error('Error loading expenses:', error);
     alert('เกิดข้อผิดพลาดในการโหลดรายการค่าใช้จ่าย');

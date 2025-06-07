@@ -64,3 +64,28 @@
   margin-top: 1.5rem;
   box-shadow: 0 1px 6px rgba(0, 0, 0, 0.05);
 }
+
+.cards-container {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.card {
+  padding: 1rem;
+  border-radius: 0.5rem;
+  flex-grow: 1;
+  text-align: center;
+}
+
+.card h3 {
+  margin-top: 0;
+  font-size: 1.2rem;
+  color: #374151;
+}
+
+.card div {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #c51010;
+}

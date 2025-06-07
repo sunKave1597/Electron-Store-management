@@ -1,5 +1,4 @@
 document.addEventListener('DOMContentLoaded', () => {
-  // Initialize date picker for month selection
   flatpickr("#monthPicker", {
     locale: "th",
     plugins: [new monthSelectPlugin({
@@ -9,26 +8,24 @@ document.addEventListener('DOMContentLoaded', () => {
       theme: "light"
     })],
     onChange: function (selectedDates, dateStr, instance) {
-      // Handle month change
       loadReportData(dateStr);
     }
   });
 
-  // Initialize chart
   const ctx = document.getElementById('salesChart').getContext('2d');
   const salesChart = new Chart(ctx, {
     type: 'bar',
     data: {
-      labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+      labels: [], // Initial empty labels
       datasets: [{
-        label: 'รายได้',
-        data: [0, 0, 0, 0],
+        label: 'รายรับ', // Changed from 'รายได้'
+        data: [],
         backgroundColor: 'rgba(59, 130, 246, 0.7)',
         borderColor: 'rgba(59, 130, 246, 1)',
         borderWidth: 1
       }, {
         label: 'กำไร',
-        data: [0, 0, 0, 0],
+        data: [],
         backgroundColor: 'rgba(16, 185, 129, 0.7)',
         borderColor: 'rgba(16, 185, 129, 1)',
         borderWidth: 1
@@ -61,54 +58,72 @@ document.addEventListener('DOMContentLoaded', () => {
   loadReportData();
 });
 
-function loadReportData(month = null) {
-  // Here you would typically fetch data from your database/API
-  // For now, we'll use mock data
-  const mockData = {
-    profit: 12500,
-    cost: 7500,
-    revenue: 20000,
-    chartData: {
-      weeks: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
-      revenue: [3000, 5000, 7000, 5000],
-      profit: [1000, 2000, 3000, 2000]
-    },
-    tableData: [
-      { date: '2023-05-01', billNumber: 'B1001', items: 'Product A', quantity: 2, price: 500, total: 1000, profit: 300 },
-      { date: '2023-05-02', billNumber: 'B1002', items: 'Product B', quantity: 1, price: 1200, total: 1200, profit: 400 },
-      // More data...
-    ]
-  };
+async function loadReportData(month = null) {
+  try {
+    // Fetch total income and expenses for the cards
+    const incomeData = await window.electronAPI.getTotalIncome();
+    const expenseData = await window.electronAPI.getTotalExpenses();
 
-  // Update cards
-  document.getElementById('card-profit-value').textContent = `${mockData.profit.toLocaleString()} บาท`;
-  document.getElementById('card-cost-value').textContent = `${mockData.cost.toLocaleString()} บาท`;
-  document.getElementById('card-revenue-value').textContent = `${mockData.revenue.toLocaleString()} บาท`;
+    const totalIncome = incomeData?.totalIncome ?? 0;
+    const totalExpenses = expenseData?.totalExpenses ?? 0;
+    const totalProfit = totalIncome - totalExpenses;
 
-  // Update chart
-  const chart = Chart.getChart('salesChart');
-  chart.data.labels = mockData.chartData.weeks;
-  chart.data.datasets[0].data = mockData.chartData.revenue;
-  chart.data.datasets[1].data = mockData.chartData.profit;
-  chart.update();
+    document.getElementById('card-revenue-value').textContent = `${totalIncome.toLocaleString(undefined, { minimumFractionDigits: 2 })} บาท`; // รายรับ
+    document.getElementById('card-cost-value').textContent = `${totalExpenses.toLocaleString(undefined, { minimumFractionDigits: 2 })} บาท`; // ทุน
+    document.getElementById('card-profit-value').textContent = `${totalProfit.toLocaleString(undefined, { minimumFractionDigits: 2 })} บาท`; // กำไร
 
-  // Update table
-  const tableBody = document.getElementById('reportTableBody');
-  tableBody.innerHTML = mockData.tableData.map(item => `
-    <tr>
-      <td>${item.date}</td>
-      <td>${item.billNumber}</td>
-      <td>${item.items}</td>
-      <td>${item.quantity}</td>
-      <td>${item.price.toLocaleString()}</td>
-      <td>${item.total.toLocaleString()}</td>
-      <td>${item.profit.toLocaleString()}</td>
-    </tr>
-  `).join('');
+    // Fetch detailed data for chart and table (can be filtered by month)
+    // The exact API and parameters might need adjustment based on main.js implementation
+    const reportDetails = await window.electronAPI.getReportData(month);
+
+    // Update chart
+    const chart = Chart.getChart('salesChart');
+    if (chart && reportDetails && reportDetails.chartData) {
+      chart.data.labels = reportDetails.chartData.labels; // e.g., ['Day 1', 'Day 2', ...] or ['Week 1', ...]
+      // Ensure the datasets exist before assigning data
+      if (chart.data.datasets[0]) { // รายได้
+        chart.data.datasets[0].data = reportDetails.chartData.revenue;
+        chart.data.datasets[0].label = 'รายรับ'; // Update label to match card
+      }
+      if (chart.data.datasets[1]) { // กำไร
+        chart.data.datasets[1].data = reportDetails.chartData.profit;
+      }
+      chart.update();
+    }
+
+    // Update table
+    const tableBody = document.getElementById('reportTableBody');
+    tableBody.innerHTML = ''; // Clear existing rows
+    if (reportDetails && reportDetails.tableData) {
+      tableBody.innerHTML = reportDetails.tableData.map(item => `
+        <tr>
+          <td>${item.date}</td>
+          <td>${item.billNumber || '-'}</td>
+          <td>${item.items}</td>
+          <td>${item.quantity !== undefined ? item.quantity : '-'}</td>
+          <td>${item.price !== undefined ? item.price.toLocaleString(undefined, { minimumFractionDigits: 2 }) : '-'}</td>
+          <td>${item.total.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+          <td>${item.profit !== undefined ? item.profit.toLocaleString(undefined, { minimumFractionDigits: 2 }) : '-'}</td>
+        </tr>
+      `).join('');
+    }
+
+  } catch (error) {
+    console.error('Error loading report data:', error);
+    // Display some error message to the user, e.g., by updating a status div
+    document.getElementById('card-revenue-value').textContent = 'Error';
+    document.getElementById('card-cost-value').textContent = 'Error';
+    document.getElementById('card-profit-value').textContent = 'Error';
+  }
 }
 
 function searchReports(date, billNumber) {
   // Here you would implement your search functionality
   console.log(`Searching for date: ${date}, bill number: ${billNumber}`);
   // You would typically filter your data or make an API call here
+  // For now, this might call loadReportData with more specific filters if the API supports it
+  // Or, if the dataset is small, client-side filtering could be done after a general loadReportData()
+  // This aspect may need further refinement depending on API capabilities.
+  // For this iteration, we assume loadReportData handles the main data loading,
+  // and month is the primary filter it supports.
 }

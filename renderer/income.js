@@ -22,9 +22,12 @@ function loadIncomeData() {
     window.electronAPI.getBills()
         .then((billsData) => {
             const tableBody = document.querySelector('#productsTable tbody');
-            tableBody.innerHTML = '';
+            tableBody.innerHTML = ''; // Clear existing rows
+
+            let totalIncome = 0; // Initialize total income
 
             billsData.forEach(bill => {
+                totalIncome += (bill.total_amount ?? 0); // Accumulate total amount
                 const row = document.createElement('tr');
                 row.innerHTML = `
                                 <td>${bill.date}</td>
@@ -35,11 +38,14 @@ function loadIncomeData() {
                                     <button class="onClik-btn" data-id="${bill.id}">ดู</button>
                                 </td>
                                 `;
-
                 tableBody.appendChild(row);
             });
 
-
+            // Update the total income card
+            const totalIncomeValueElement = document.getElementById('total-income-value');
+            if (totalIncomeValueElement) {
+                totalIncomeValueElement.textContent = `${totalIncome.toLocaleString(undefined, { minimumFractionDigits: 2 })} บาท`;
+            }
 
             document.querySelectorAll('.onClik-btn').forEach(button => {
                 button.onclick = function () {
