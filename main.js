@@ -23,6 +23,15 @@ function createWindow() {
 
 app.whenReady().then(createWindow);
 
+// Helper to get date in YYYY-MM-DD format
+const getFormattedDate = () => {
+    const date = new Date();
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+};
+
 function handleIpc(channel, handler) {
     ipcMain.handle(channel, async (event, ...args) => {
         try {
@@ -45,25 +54,10 @@ handleIpc('get-products', () => {
 
 handleIpc('add-product', (_, name, quantity, price) => {
     return new Promise((resolve, reject) => {
-        const date = new Date();
-
-        const options = {
-            day: "2-digit",
-            month: "2-digit",
-            year: "numeric",
-            numberingSystem: "latn", // use Western digits
-        };
-
-        const thaiFormatted = new Intl.DateTimeFormat("th-TH", options).formatToParts(date);
-
-        const day = thaiFormatted.find(p => p.type === "day").value;
-        const month = thaiFormatted.find(p => p.type === "month").value;
-        const gregorianYear = date.getFullYear();
-
-        const thDate = `${day}/${month}/${gregorianYear}`;
+        const dbDate = getFormattedDate(); // Use standardized date format
         db.run(
             "INSERT INTO products (name, quantity, price, date) VALUES (?, ?, ?, ?)",
-            [name, quantity, price, thDate],
+            [name, quantity, price, dbDate],
             function (err) {
                 if (err) return reject(err);
                 resolve({ id: this.lastID });
@@ -84,22 +78,7 @@ handleIpc('create-bill', async (_, billData) => {
     const { billNumber, totalAmount, receivedAmount, changeAmount, items } = billData;
 
     return new Promise((resolve, reject) => {
-        const date = new Date();
-
-        const options = {
-            day: "2-digit",
-            month: "2-digit",
-            year: "numeric",
-            numberingSystem: "latn", // use Western digits
-        };
-
-        const thaiFormatted = new Intl.DateTimeFormat("th-TH", options).formatToParts(date);
-
-        const day = thaiFormatted.find(p => p.type === "day").value;
-        const month = thaiFormatted.find(p => p.type === "month").value;
-        const gregorianYear = date.getFullYear();
-
-        const thDate = `${day}/${month}/${gregorianYear}`;
+        const dbDate = getFormattedDate(); // Use standardized date format
         db.serialize(() => {
             db.run('BEGIN TRANSACTION');
 
@@ -112,7 +91,7 @@ handleIpc('create-bill', async (_, billData) => {
                     totalAmount,
                     receivedAmount,
                     changeAmount,
-                    thDate
+                    dbDate // Use standardized date
                 ],
                 function (err) {
                     if (err) {
@@ -202,26 +181,11 @@ handleIpc('delete-bill', (_, id) => {
 ipcMain.handle('add-expense', async (event, expenseData) => {
     return new Promise((resolve, reject) => {
         const { item, amount } = expenseData;
-        const date = new Date();
-
-        const options = {
-            day: "2-digit",
-            month: "2-digit",
-            year: "numeric",
-            numberingSystem: "latn", // use Western digits
-        };
-
-        const thaiFormatted = new Intl.DateTimeFormat("th-TH", options).formatToParts(date);
-
-        const day = thaiFormatted.find(p => p.type === "day").value;
-        const month = thaiFormatted.find(p => p.type === "month").value;
-        const gregorianYear = date.getFullYear();
-
-        const thDate = `${day}/${month}/${gregorianYear}`;
+        const dbDate = getFormattedDate(); // Use standardized date format
 
         db.run(
             `INSERT INTO expense (date, item, amount) VALUES (?, ?, ?)`,
-            [thDate, item, amount],
+            [dbDate, item, amount],
             function (err) {
                 if (err) {
                     console.error('Error inserting expense:', err);
@@ -320,4 +284,3 @@ ipcMain.handle('get-report-data', async (event, month) => {
         throw error;
     }
 });
-

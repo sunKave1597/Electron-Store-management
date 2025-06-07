@@ -1,8 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
-  flatpickr("#monthPicker", {
+  const monthPicker = flatpickr("#monthPicker", {
     locale: "th",
     plugins: [new monthSelectPlugin({
-      shorthand: true,
       dateFormat: "m/Y",
       altFormat: "F Y",
       theme: "light"
@@ -13,12 +12,12 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   const ctx = document.getElementById('salesChart').getContext('2d');
-  const salesChart = new Chart(ctx, {
+  new Chart(ctx, {
     type: 'bar',
     data: {
-      labels: [], // Initial empty labels
+      labels: [],
       datasets: [{
-        label: 'รายรับ', // Changed from 'รายได้'
+        label: 'รายรับ',
         data: [],
         backgroundColor: 'rgba(59, 130, 246, 0.7)',
         borderColor: 'rgba(59, 130, 246, 1)',
@@ -41,7 +40,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Search functionality
   document.getElementById('searchBtn').addEventListener('click', () => {
     const date = document.getElementById('searchDate').value;
     const billNumber = document.getElementById('searchInput').value;
@@ -51,16 +49,21 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('clearBtn').addEventListener('click', () => {
     document.getElementById('searchDate').value = '';
     document.getElementById('searchInput').value = '';
-    loadReportData();
+    const now = new Date();
+    const currentMonthStr = `${now.getMonth() + 1}/${now.getFullYear()}`;
+    monthPicker.setDate(now, false);
+    loadReportData(currentMonthStr);
   });
 
-  // Initial load
-  loadReportData();
+  // Initial load for the current month
+  const now = new Date();
+  const currentMonthStr = `${now.getMonth() + 1}/${now.getFullYear()}`;
+  monthPicker.setDate(now, false); // Set picker to current month
+  loadReportData(currentMonthStr); // Load data for the current month
 });
 
 async function loadReportData(month = null) {
   try {
-    // Fetch total income and expenses for the cards
     const incomeData = await window.electronAPI.getTotalIncome();
     const expenseData = await window.electronAPI.getTotalExpenses();
 
@@ -68,43 +71,44 @@ async function loadReportData(month = null) {
     const totalExpenses = expenseData?.totalExpenses ?? 0;
     const totalProfit = totalIncome - totalExpenses;
 
-    document.getElementById('card-revenue-value').textContent = `${totalIncome.toLocaleString(undefined, { minimumFractionDigits: 2 })} บาท`; // รายรับ
-    document.getElementById('card-cost-value').textContent = `${totalExpenses.toLocaleString(undefined, { minimumFractionDigits: 2 })} บาท`; // ทุน
-    document.getElementById('card-profit-value').textContent = `${totalProfit.toLocaleString(undefined, { minimumFractionDigits: 2 })} บาท`; // กำไร
+    document.getElementById('card-revenue-value').textContent = `${totalIncome.toLocaleString(undefined, { minimumFractionDigits: 2 })} บาท`;
+    document.getElementById('card-cost-value').textContent = `${totalExpenses.toLocaleString(undefined, { minimumFractionDigits: 2 })} บาท`;
+    document.getElementById('card-profit-value').textContent = `${totalProfit.toLocaleString(undefined, { minimumFractionDigits: 2 })} บาท`;
 
-    // Fetch detailed data for chart and table (can be filtered by month)
-    // The exact API and parameters might need adjustment based on main.js implementation
     const reportDetails = await window.electronAPI.getReportData(month);
 
-    // Update chart
     const chart = Chart.getChart('salesChart');
     if (chart && reportDetails && reportDetails.chartData) {
-      chart.data.labels = reportDetails.chartData.labels; // e.g., ['Day 1', 'Day 2', ...] or ['Week 1', ...]
-      // Ensure the datasets exist before assigning data
-      if (chart.data.datasets[0]) { // รายได้
+      chart.data.labels = reportDetails.chartData.labels;
+      if (chart.data.datasets[0]) {
         chart.data.datasets[0].data = reportDetails.chartData.revenue;
-        chart.data.datasets[0].label = 'รายรับ'; // Update label to match card
+        chart.data.datasets[0].label = 'รายรับ';
       }
-      if (chart.data.datasets[1]) { // กำไร
+      if (chart.data.datasets[1]) {
         chart.data.datasets[1].data = reportDetails.chartData.profit;
       }
       chart.update();
     }
 
     const tableBody = document.getElementById('reportTableBody');
-    tableBody.innerHTML = ''; // Clear existing rows
+    tableBody.innerHTML = '';
     if (reportDetails && reportDetails.tableData) {
-      tableBody.innerHTML = reportDetails.tableData.map(item => `
+      tableBody.innerHTML = reportDetails.tableData.map(item => {
+        // Format date from YYYY-MM-DD to DD/MM/YYYY for display
+        const dateParts = item.date.split('-');
+        const displayDate = `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}`;
+
+        return `
         <tr>
-          <td>${item.date}</td>
+          <td>${displayDate}</td>
           <td>${item.billNumber || '-'}</td>
           <td>${item.items}</td>
-          <td>${item.quantity !== undefined ? item.quantity : '-'}</td>
-          <td>${item.price !== undefined ? item.price.toLocaleString(undefined, { minimumFractionDigits: 2 }) : '-'}</td>
+          <td>${item.quantity !== undefined && item.quantity !== null ? item.quantity : '-'}</td>
+          <td>${item.price !== undefined && item.price !== null ? item.price.toLocaleString(undefined, { minimumFractionDigits: 2 }) : '-'}</td>
           <td>${item.total.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-          <td>${item.profit !== undefined ? item.profit.toLocaleString(undefined, { minimumFractionDigits: 2 }) : '-'}</td>
+          <td>${item.profit !== undefined && item.profit !== null ? item.profit.toLocaleString(undefined, { minimumFractionDigits: 2 }) : '-'}</td>
         </tr>
-      `).join('');
+      `}).join('');
     }
 
   } catch (error) {
@@ -117,4 +121,5 @@ async function loadReportData(month = null) {
 
 function searchReports(date, billNumber) {
   console.log(`Searching for date: ${date}, bill number: ${billNumber}`);
+  // This function would need an IPC handler and DB query to be fully implemented.
 }

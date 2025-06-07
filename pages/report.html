@@ -52,21 +52,12 @@
 
       <div class="month-filter">
         <label for="monthPicker">เลือกเดือน:</label>
-        <select id="monthPicker" class="flatpickr-month">
-          <option value="">เดือน</option>
-          <option value="01">มกราคม</option>
-          <option value="02">กุมภาพันธ์</option>
-          <option value="03">มีนาคม</option>
-          <option value="04">เมษายน</option>
-          <option value="05">พฤษภาคม</option>
-          <option value="06">มิถุนายน</option>
-          <option value="07">กรกฎาคม</option>
-          <option value="08">สิงหาคม</option>
-          <option value="09">กันยายน</option>
-          <option value="10">ตุลาคม</option>
-          <option value="11">พฤศจิกายน</option>
-          <option value="12">ธันวาคม</option>
-        </select>
+        <input
+          type="text"
+          id="monthPicker"
+          class="flatpickr-month"
+          placeholder="เลือกเดือน"
+        />
       </div>
 
       <div class="chart-container">
@@ -94,6 +85,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/th.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/monthSelect/index.js"></script>
     <script src="../renderer/report.js"></script>
   </body>
 </html>
