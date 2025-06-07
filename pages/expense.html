@@ -24,11 +24,21 @@
         <label for="searchDate">ค้นหาวันที่</label>
         <input type="date" id="searchDate" />
 
-        <label for="">ค้นหารายการ</label>
-        <input type="text" id="searchInput" placeholder="ชื่อรายการ" />
+        <label for="searchItemInput">ค้นหารายการ</label>
+        <input
+          type="text"
+          id="searchItemInput"
+          placeholder="ชื่อรายการ"
+          class="searchInput"
+        />
 
-        <label for="">จำนวนเงิน</label>
-        <input type="text" id="searchInput" placeholder="ค้นหาจำนวนเงิน" />
+        <label for="searchAmountInput">จำนวนเงิน</label>
+        <input
+          type="text"
+          id="searchAmountInput"
+          placeholder="ค้นหาจำนวนเงิน"
+          class="searchInput"
+        />
 
         <button id="searchBtn" class="onClik-btn">ค้นหา</button>
         <button id="clearSearchBtn" class="clear-btn">ล้าง</button>
@@ -56,11 +66,21 @@
         <form id="expenseForm">
           <div class="form-group">
             <label for="expenseItem">ชื่อรายการ</label>
-            <input type="text" id="expenseItem" required />
+            <select
+              id="expenseItem"
+              class="form-group select"
+              required
+            ></select>
           </div>
           <div class="form-group">
             <label for="expenseAmount">จำนวนเงิน</label>
-            <input type="number" id="expenseAmount" step="0.01" required />
+            <input
+              type="number"
+              id="expenseAmount"
+              min="1"
+              value="1"
+              required
+            />
           </div>
           <div class="form-group">
             <label for="expenseDate">วันที่</label>

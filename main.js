@@ -167,59 +167,74 @@ handleIpc('delete-bill', (_, id) => {
 });
 
 ipcMain.handle('add-expense', async (event, expenseData) => {
-  return new Promise((resolve, reject) => {
-    const { date, item, amount } = expenseData;
+    return new Promise((resolve, reject) => {
+        const { date, item, amount } = expenseData;
 
-    db.run(
-      `INSERT INTO expense (date, item, amount) VALUES (?, ?, ?)`,
-      [date, item, amount],
-      function (err) {
-        if (err) {
-          console.error('Error inserting expense:', err);
-          reject(err);
-        } else {
-          resolve({ id: this.lastID });
-        }
-      }
-    );
-  });
+        db.run(
+            `INSERT INTO expense (date, item, amount) VALUES (?, ?, ?)`,
+            [date, item, amount],
+            function (err) {
+                if (err) {
+                    console.error('Error inserting expense:', err);
+                    reject(err);
+                } else {
+                    resolve({ id: this.lastID });
+                }
+            }
+        );
+    });
 });
 ipcMain.handle('get-expenses', async () => {
-  return new Promise((resolve, reject) => {
-    db.all(`SELECT date, item, amount FROM expense ORDER BY date DESC`, [], (err, rows) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve(rows);
-      }
+    return new Promise((resolve, reject) => {
+        db.all(`SELECT id, date, item, amount FROM expense ORDER BY date DESC`, [], (err, rows) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(rows);
+            }
+        });
     });
-  });
+});
+
+handleIpc('delete-expense', async (event, expenseId) => {
+    return new Promise((resolve, reject) => {
+        db.run("DELETE FROM expense WHERE id = ?", [expenseId], function (err) {
+            if (err) {
+                console.error('Error deleting expense:', err);
+                return reject(err);
+            }
+            if (this.changes === 0) {
+                console.warn(`Attempted to delete expense with ID ${expenseId}, but no such expense found.`);
+            }
+            resolve({ id: expenseId, changes: this.changes });
+        });
+    });
 });
 
 ipcMain.handle('get-dashboard-data', async (e, month) => {
-  const daily = await dbAll(
-    `SELECT strftime('%d', date) AS day, SUM(amount) AS income
+    const daily = await dbAll(
+        `SELECT strftime('%d', date) AS day, SUM(amount) AS income
      FROM income
      WHERE strftime('%Y-%m', date) = ?
      GROUP BY day ORDER BY day`, [month]);
-  const summary = await dbGet(
-    `SELECT SUM(amount) AS income
+    const summary = await dbGet(
+        `SELECT SUM(amount) AS income
      FROM income WHERE strftime('%Y-%m', date) = ?`, [month]);
 
-  const topProducts = await dbAll(
-    `SELECT item AS name, SUM(amount) AS total
+    const topProducts = await dbAll(
+        `SELECT item AS name, SUM(amount) AS total
      FROM income
      WHERE strftime('%Y-%m', date) = ?
      GROUP BY item ORDER BY total DESC LIMIT 5`, [month]);
 
-  return { daily, summary, topProducts };
+    return { daily, summary, topProducts };
 });
 
 
 
 ipcMain.handle('get-monthly-summary', async () => {
-  return dbAll(
-    `SELECT strftime('%Y-%m', date) AS month,
+    return dbAll(
+        `SELECT strftime('%Y-%m', date) AS month,
             SUM(income) AS income,
             SUM(income - cost) AS profit
      FROM income

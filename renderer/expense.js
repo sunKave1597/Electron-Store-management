@@ -3,11 +3,37 @@ const expenseModal = document.getElementById('expenseModal');
 const closeExpenseModal = document.getElementById('closeExpenseModal');
 const expenseForm = document.getElementById('expenseForm');
 const expenseDateInput = document.getElementById('expenseDate');
+const expenseItemSelect = document.getElementById('expenseItem'); // Get select element
+
+async function populateExpenseItemDropdown() {
+  try {
+    const products = await window.electronAPI.getProducts();
+    expenseItemSelect.innerHTML = ''; // Clear existing options
+
+    // Add a default placeholder option
+    const placeholderOption = document.createElement('option');
+    placeholderOption.value = '';
+    placeholderOption.textContent = 'เลือกสินค้า';
+    placeholderOption.disabled = true;
+    placeholderOption.selected = true;
+    expenseItemSelect.appendChild(placeholderOption);
+
+    products.forEach(product => {
+      const option = document.createElement('option');
+      option.value = product.name; // Assuming product.name is the desired value
+      option.textContent = product.name;
+      expenseItemSelect.appendChild(option);
+    });
+  } catch (error) {
+    console.error('Error populating expense items:', error);
+    // Handle error, e.g., show a message to the user
+  }
+}
 
 addExpenseBtn.addEventListener('click', () => {
   const today = new Date().toISOString().substr(0, 10);
   expenseDateInput.value = today;
-
+  populateExpenseItemDropdown(); // Populate dropdown when modal opens
   expenseModal.style.display = 'block';
 });
 
@@ -25,12 +51,12 @@ window.addEventListener('click', (event) => {
 expenseForm.addEventListener('submit', (event) => {
   event.preventDefault();
 
-  const item = document.getElementById('expenseItem').value;
+  const item = expenseItemSelect.value; // Get value from select
   const amount = parseFloat(document.getElementById('expenseAmount').value);
   const date = document.getElementById('expenseDate').value;
 
   if (!item || isNaN(amount) || amount <= 0 || !date) {
-    alert('กรุณากรอกข้อมูลให้ครบถ้วน');
+    alert('กรุณากรอกข้อมูลให้ครบถ้วน และเลือกรายการ');
     return;
   }
   try {
@@ -50,21 +76,108 @@ expenseForm.addEventListener('submit', (event) => {
 
 });
 
-async function loadExpenses() {
+// Function to display expenses in the table
+function displayExpenses(expensesToDisplay) {
   const tbody = document.querySelector('#productsTable tbody');
-  const expenses = await window.electronAPI.getExpenses();
-  tbody.innerHTML = '';
+  tbody.innerHTML = ''; // Clear existing rows
 
-  expenses.forEach((expense) => {
+  expensesToDisplay.forEach((expense) => {
     const row = document.createElement('tr');
     row.innerHTML = `
       <td>${expense.date}</td>
       <td>${expense.item}</td>
       <td>${expense.amount.toFixed(2)}</td>
-     
+      <td><button class="delete-btn" data-id="${expense.id}">ลบ</button></td>
     `;
     tbody.appendChild(row);
   });
 }
 
-document.addEventListener('DOMContentLoaded', loadExpenses);
+async function loadExpenses() {
+  try {
+    const expenses = await window.electronAPI.getExpenses();
+    displayExpenses(expenses);
+  } catch (error) {
+    console.error('Error loading expenses:', error);
+    alert('เกิดข้อผิดพลาดในการโหลดรายการค่าใช้จ่าย');
+  }
+}
+
+async function deleteExpense(expenseId) {
+  try {
+    await window.electronAPI.deleteExpense(expenseId);
+    loadExpenses(); // Refresh the table
+  } catch (error) {
+    console.error('Error deleting expense:', error);
+    alert('เกิดข้อผิดพลาดในการลบรายการค่าใช้จ่าย');
+  }
+}
+
+// Search and Clear Search Functionality
+const searchBtn = document.getElementById('searchBtn');
+const clearSearchBtn = document.getElementById('clearSearchBtn');
+const searchDateInput = document.getElementById('searchDate');
+const searchItemInput = document.getElementById('searchItemInput');
+const searchAmountInput = document.getElementById('searchAmountInput');
+
+searchBtn.addEventListener('click', async () => {
+  try {
+    const allExpenses = await window.electronAPI.getExpenses();
+    const dateQuery = searchDateInput.value;
+    const itemQuery = searchItemInput.value.toLowerCase();
+    const amountQuery = searchAmountInput.value;
+
+    const filteredExpenses = allExpenses.filter(expense => {
+      let matchesDate = true;
+      if (dateQuery) {
+        matchesDate = expense.date === dateQuery;
+      }
+
+      let matchesItem = true;
+      if (itemQuery) {
+        matchesItem = expense.item.toLowerCase().includes(itemQuery);
+      }
+
+      let matchesAmount = true;
+      if (amountQuery) {
+        const amountValue = parseFloat(amountQuery);
+        if (!isNaN(amountValue)) {
+          matchesAmount = expense.amount === amountValue;
+        } else {
+          // If amountQuery is not a valid number, it shouldn't match anything if user intended to filter by amount
+          matchesAmount = false;
+        }
+      }
+      return matchesDate && matchesItem && matchesAmount;
+    });
+
+    displayExpenses(filteredExpenses);
+  } catch (error) {
+    console.error('Error searching expenses:', error);
+    alert('เกิดข้อผิดพลาดในการค้นหารายการ');
+  }
+});
+
+clearSearchBtn.addEventListener('click', () => {
+  searchDateInput.value = '';
+  searchItemInput.value = '';
+  searchAmountInput.value = '';
+  loadExpenses(); // Reload all expenses
+});
+
+
+document.addEventListener('DOMContentLoaded', () => {
+  loadExpenses();
+  populateExpenseItemDropdown(); // Populate dropdown on page load
+});
+
+// Event delegation for delete buttons
+const productsTableBody = document.querySelector('#productsTable tbody');
+productsTableBody.addEventListener('click', (event) => {
+  if (event.target.classList.contains('delete-btn')) {
+    const expenseId = event.target.dataset.id;
+    if (confirm('คุณแน่ใจหรือไม่ว่าต้องการลบรายการนี้?')) {
+      deleteExpense(expenseId);
+    }
+  }
+});

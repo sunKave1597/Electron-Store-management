@@ -10,6 +10,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     deleteBill: (billId) => ipcRenderer.invoke('delete-bill', billId),
     addExpense: (expenseData) => ipcRenderer.invoke('add-expense', expenseData),
     getExpenses: () => ipcRenderer.invoke('get-expenses'),
+    deleteExpense: (id) => ipcRenderer.invoke('delete-expense', id),
     getDashboardData: (month) => ipcRenderer.invoke('get-dashboard-data', month),
     getMonthlySummary: () => ipcRenderer.invoke('get-monthly-summary')
 
