@@ -45,9 +45,10 @@ handleIpc('get-products', () => {
 
 handleIpc('add-product', (_, name, quantity, price) => {
     return new Promise((resolve, reject) => {
+        const thDate = new Date().toLocaleDateString("th-TH", { year: "numeric", month: "2-digit", day: "2-digit" });
         db.run(
-            "INSERT INTO products (name, quantity, price) VALUES (?, ?, ?)",
-            [name, quantity, price],
+            "INSERT INTO products (name, quantity, price, date) VALUES (?, ?, ?, ?)",
+            [name, quantity, price, thDate],
             function (err) {
                 if (err) return reject(err);
                 resolve({ id: this.lastID });
@@ -68,18 +69,20 @@ handleIpc('create-bill', async (_, billData) => {
     const { billNumber, totalAmount, receivedAmount, changeAmount, items } = billData;
 
     return new Promise((resolve, reject) => {
+        const thDate = new Date().toLocaleDateString("th-TH", { year: "numeric", month: "2-digit", day: "2-digit" });
         db.serialize(() => {
             db.run('BEGIN TRANSACTION');
 
             db.run(
-                `INSERT INTO bills (bill_number, items, total_amount, received_amount, change_amount, created_at) 
-                 VALUES (?, ?, ?, ?, ?, strftime('%d-%m-%Y', 'now', 'localtime'))`,
+                `INSERT INTO bills (bill_number, items, total_amount, received_amount, change_amount, date) 
+                 VALUES (?, ?, ?, ?, ?, ?)`,
                 [
                     billNumber,
                     items.map(item => `${item.productName} (${item.quantity})`).join(', '),
                     totalAmount,
                     receivedAmount,
-                    changeAmount
+                    changeAmount,
+                    thDate
                 ],
                 function (err) {
                     if (err) {
@@ -125,7 +128,7 @@ handleIpc('create-bill', async (_, billData) => {
 handleIpc('get-bills', () => {
     return new Promise((resolve, reject) => {
         db.all(
-            `SELECT id, bill_number, items, total_amount, created_at 
+            `SELECT id, bill_number, items, total_amount, date, created_at 
              FROM bills 
              ORDER BY created_at DESC`,
             (err, rows) => {

@@ -25,13 +25,9 @@ function loadIncomeData() {
             tableBody.innerHTML = '';
 
             billsData.forEach(bill => {
-                const date = new Date(bill.date);
-                const options = { year: 'numeric', month: '2-digit', day: '2-digit' };
-                const formattedDate = date.toLocaleDateString('th-TH', options);
-
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                                <td>${bill.created_at}</td>
+                                <td>${bill.date}</td>
                                 <td>${bill.bill_number}</td>
                                 <td>${(bill.total_amount ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
                                 <td>
@@ -43,6 +39,8 @@ function loadIncomeData() {
                 tableBody.appendChild(row);
             });
 
+
+
             document.querySelectorAll('.onClik-btn').forEach(button => {
                 button.onclick = function () {
                     const billId = button.getAttribute('data-id');
@@ -52,8 +50,8 @@ function loadIncomeData() {
                             const bill = data.bill;
                             const items = data.items;
 
-                            const billDate = new Date(bill.created_at);
-                            const options = { year: 'numeric', month: '2-digit', day: '2-digit' };
+                            const billDate = new Date(bill.date);
+                            const options = { month: '2-digit', day: '2-digit' };
                             const formattedDate = billDate.toLocaleDateString('th-TH', options);
 
                             document.getElementById('modalBillNumber').textContent = bill.bill_number;

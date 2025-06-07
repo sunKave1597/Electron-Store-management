@@ -63,7 +63,6 @@ db.serialize(() => {
       item TEXT NOT NULL,
       amount REAL NOT NULL,
       bill_number TEXT NOT NULL,
-      date TEXT NOT NULL,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
   `);
@@ -74,7 +73,6 @@ db.serialize(() => {
       date TEXT NOT NULL,
       item TEXT NOT NULL,
       amount REAL NOT NULL,
-      date TEXT NOT NULL,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
   `);
@@ -89,17 +87,18 @@ db.serialize(() => {
     }
     const count = row.count;
     if (count === 0) {
+      const thDate = new Date().toLocaleDateString("th-TH", { year: "numeric", month: "2-digit", day: "2-digit" });
       db.run(
-        "INSERT INTO products (name, quantity, price) VALUES (?, ?, ?)",
-        ["โค้ก", 2, 25],
+        "INSERT INTO products (name, quantity, price, date) VALUES (?, ?, ?, ?)",
+        ["โค้ก", 2, 25, thDate],
         function (err) {
           if (err) console.error("Error inserting 'โค้ก':", err);
           else console.log("Inserted 'โค้ก'");
         }
       );
       db.run(
-        "INSERT INTO products (name, quantity, price) VALUES (?, ?, ?)",
-        ["น้ำเปล่า", 3, 10],
+        "INSERT INTO products (name, quantity, price, date) VALUES (?, ?, ?, ?)",
+        ["น้ำเปล่า", 3, 10, thDate],
         function (err) {
           if (err) console.error("Error inserting 'น้ำเปล่า':", err);
           else console.log("Inserted 'น้ำเปล่า'");
