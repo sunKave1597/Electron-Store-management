@@ -33,6 +33,14 @@ expenseForm.addEventListener('submit', (event) => {
     alert('กรุณากรอกข้อมูลให้ครบถ้วน');
     return;
   }
+  try {
+    window.electronAPI.addExpense({ item, amount, date });
+    alert('บันทึกค่าใช้จ่ายเรียบร้อยแล้ว!');
+    loadExpenses(); 
+  } catch (err) {
+    console.error('เกิดข้อผิดพลาด:', err);
+    alert('บันทึกไม่สำเร็จ');
+  }
 
   console.log('บันทึกข้อมูล:', { item, amount, date });
 
@@ -41,3 +49,21 @@ expenseForm.addEventListener('submit', (event) => {
 
 
 });
+
+async function loadExpenses() {
+  const tbody = document.querySelector('#productsTable tbody');
+  const expenses = await window.electronAPI.getExpenses();
+  tbody.innerHTML = '';
+
+  expenses.forEach((expense) => {
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td>${expense.date}</td>
+      <td>${expense.item}</td>
+      <td>${expense.amount.toFixed(2)}</td>
+    `;
+    tbody.appendChild(row);
+  });
+}
+
+document.addEventListener('DOMContentLoaded', loadExpenses);

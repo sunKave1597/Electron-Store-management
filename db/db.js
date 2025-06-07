@@ -65,6 +65,18 @@ db.serialize(() => {
     );
   `);
 
+  db.run(`
+    CREATE TABLE IF NOT EXISTS expense (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      date TEXT NOT NULL,
+      item TEXT NOT NULL,
+      amount REAL NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+  `);
+
+
+
 
   db.get("SELECT COUNT(*) AS count FROM products", [], (err, row) => {
     if (err) {
@@ -93,4 +105,26 @@ db.serialize(() => {
   });
 });
 
-module.exports = db;
+const dbAll = (sql, params = []) => {
+  return new Promise((resolve, reject) => {
+    db.all(sql, params, (err, rows) => {
+      if (err) reject(err);
+      else resolve(rows);
+    });
+  });
+};
+
+const dbGet = (sql, params = []) => {
+  return new Promise((resolve, reject) => {
+    db.get(sql, params, (err, row) => {
+      if (err) reject(err);
+      else resolve(row);
+    });
+  });
+};
+
+module.exports = {
+  db,
+  dbAll,
+  dbGet,
+};
