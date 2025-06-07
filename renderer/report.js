@@ -91,7 +91,6 @@ async function loadReportData(month = null) {
       chart.update();
     }
 
-    // Update table
     const tableBody = document.getElementById('reportTableBody');
     tableBody.innerHTML = ''; // Clear existing rows
     if (reportDetails && reportDetails.tableData) {
@@ -110,7 +109,6 @@ async function loadReportData(month = null) {
 
   } catch (error) {
     console.error('Error loading report data:', error);
-    // Display some error message to the user, e.g., by updating a status div
     document.getElementById('card-revenue-value').textContent = 'Error';
     document.getElementById('card-cost-value').textContent = 'Error';
     document.getElementById('card-profit-value').textContent = 'Error';
@@ -118,12 +116,5 @@ async function loadReportData(month = null) {
 }
 
 function searchReports(date, billNumber) {
-  // Here you would implement your search functionality
   console.log(`Searching for date: ${date}, bill number: ${billNumber}`);
-  // You would typically filter your data or make an API call here
-  // For now, this might call loadReportData with more specific filters if the API supports it
-  // Or, if the dataset is small, client-side filtering could be done after a general loadReportData()
-  // This aspect may need further refinement depending on API capabilities.
-  // For this iteration, we assume loadReportData handles the main data loading,
-  // and month is the primary filter it supports.
 }
