@@ -1,6 +1,7 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
-const db = require('./db/db');
+const { db, dbAll, dbGet } = require('./db/db');
+
 
 function createWindow() {
     const win = new BrowserWindow({
@@ -164,3 +165,65 @@ handleIpc('delete-bill', (_, id) => {
         });
     });
 });
+
+ipcMain.handle('add-expense', async (event, expenseData) => {
+  return new Promise((resolve, reject) => {
+    const { date, item, amount } = expenseData;
+
+    db.run(
+      `INSERT INTO expense (date, item, amount) VALUES (?, ?, ?)`,
+      [date, item, amount],
+      function (err) {
+        if (err) {
+          console.error('Error inserting expense:', err);
+          reject(err);
+        } else {
+          resolve({ id: this.lastID });
+        }
+      }
+    );
+  });
+});
+ipcMain.handle('get-expenses', async () => {
+  return new Promise((resolve, reject) => {
+    db.all(`SELECT date, item, amount FROM expense ORDER BY date DESC`, [], (err, rows) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(rows);
+      }
+    });
+  });
+});
+
+ipcMain.handle('get-dashboard-data', async (e, month) => {
+  const daily = await dbAll(
+    `SELECT strftime('%d', date) AS day, SUM(amount) AS income
+     FROM income
+     WHERE strftime('%Y-%m', date) = ?
+     GROUP BY day ORDER BY day`, [month]);
+  const summary = await dbGet(
+    `SELECT SUM(amount) AS income
+     FROM income WHERE strftime('%Y-%m', date) = ?`, [month]);
+
+  const topProducts = await dbAll(
+    `SELECT item AS name, SUM(amount) AS total
+     FROM income
+     WHERE strftime('%Y-%m', date) = ?
+     GROUP BY item ORDER BY total DESC LIMIT 5`, [month]);
+
+  return { daily, summary, topProducts };
+});
+
+
+
+ipcMain.handle('get-monthly-summary', async () => {
+  return dbAll(
+    `SELECT strftime('%Y-%m', date) AS month,
+            SUM(income) AS income,
+            SUM(income - cost) AS profit
+     FROM income
+     GROUP BY month
+     ORDER BY month DESC`);
+});
+
