@@ -36,7 +36,7 @@ expenseForm.addEventListener('submit', (event) => {
   try {
     window.electronAPI.addExpense({ item, amount, date });
     alert('บันทึกค่าใช้จ่ายเรียบร้อยแล้ว!');
-    loadExpenses(); 
+    loadExpenses();
   } catch (err) {
     console.error('เกิดข้อผิดพลาด:', err);
     alert('บันทึกไม่สำเร็จ');
@@ -61,6 +61,7 @@ async function loadExpenses() {
       <td>${expense.date}</td>
       <td>${expense.item}</td>
       <td>${expense.amount.toFixed(2)}</td>
+     
     `;
     tbody.appendChild(row);
   });

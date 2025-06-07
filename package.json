@@ -1,12 +1,12 @@
 {
-  "name": "AccountingApp",
+  "name": "storemangementapp",
   "version": "1.0.0",
-  "description": "AccountingApp by Sunny",
-  "author": "Sunny",
+  "description": "storemangementapp",
+  "author": "Umodel",
   "main": "main.js",
   "build": {
-    "appId": "com.sunny.electronapp",
-    "productName": "AccountingApp By Sunny",
+    "appId": "com.electronapp",
+    "productName": "storemangementapp",
     "directories": {
       "output": "dist"
     },

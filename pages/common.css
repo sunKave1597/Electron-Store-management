@@ -128,7 +128,6 @@ tr:last-child td {
     background-color: #dc2626;
 }
 
-/* Modal styles moved to common.css since they're used in multiple pages */
 .modal {
     display: none;
     position: fixed;
