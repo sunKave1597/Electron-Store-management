@@ -11,9 +11,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
     addExpense: (expenseData) => ipcRenderer.invoke('add-expense', expenseData),
     getExpenses: () => ipcRenderer.invoke('get-expenses'),
     deleteExpense: (id) => ipcRenderer.invoke('delete-expense', id),
-    getDashboardData: (month) => ipcRenderer.invoke('get-dashboard-data', month),
     getMonthlySummary: () => ipcRenderer.invoke('get-monthly-summary'),
     getTotalIncome: () => ipcRenderer.invoke('get-total-income'),
     getTotalExpenses: () => ipcRenderer.invoke('get-total-expenses'),
-    getReportData: (month) => ipcRenderer.invoke('get-report-data', month)
+  getDashboardData: (month) => ipcRenderer.invoke('get-dashboard-data', month),
+  getReportData: (filters) => ipcRenderer.invoke('get-report-data', filters)
+
+
 });
