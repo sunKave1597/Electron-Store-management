@@ -224,63 +224,57 @@ handleIpc('delete-expense', async (event, expenseId) => {
     });
 });
 
-ipcMain.handle('get-dashboard-data', async (e, month) => {
-    const daily = await dbAll(
-        `SELECT strftime('%d', date) AS day, SUM(amount) AS income
-     FROM income
-     WHERE strftime('%Y-%m', date) = ?
-     GROUP BY day ORDER BY day`, [month]);
-    const summary = await dbGet(
-        `SELECT SUM(amount) AS income
-     FROM income WHERE strftime('%Y-%m', date) = ?`, [month]);
+ipcMain.handle('get-dashboard-data', async (event, month) => {
+  const dbAll = (query, params = []) => new Promise((resolve, reject) => {
+    db.all(query, params, (err, rows) => (err ? reject(err) : resolve(rows)));
+  });
+  const dbGet = (query, params = []) => new Promise((resolve, reject) => {
+    db.get(query, params, (err, row) => (err ? reject(err) : resolve(row)));
+  });
 
-    const topProducts = await dbAll(
-        `SELECT item AS name, SUM(amount) AS total
-     FROM income
-     WHERE strftime('%Y-%m', date) = ?
-     GROUP BY item ORDER BY total DESC LIMIT 5`, [month]);
+  const daily = await dbAll(`
+    SELECT strftime('%d', date) AS day, SUM(amount) AS income
+    FROM income
+    WHERE strftime('%Y-%m', date) = ?
+    GROUP BY day ORDER BY day
+  `, [month]);
 
-    return { daily, summary, topProducts };
+  const summary = await dbGet(`
+    SELECT SUM(amount) AS income
+    FROM income
+    WHERE strftime('%Y-%m', date) = ?
+  `, [month]);
+
+  const topProducts = await dbAll(`
+    SELECT item AS name, SUM(amount) AS total
+    FROM income
+    WHERE strftime('%Y-%m', date) = ?
+    GROUP BY item ORDER BY total DESC LIMIT 5
+  `, [month]);
+
+  return { daily, summary, topProducts };
 });
 
+// Report Table
+ipcMain.handle('get-report-data', async (event, filters) => {
+  const { date, billNumber } = filters;
 
+  let query = `SELECT * FROM income WHERE 1=1`;
+  const params = [];
 
-ipcMain.handle('get-monthly-summary', async () => {
-    return dbAll(
-        `SELECT strftime('%Y-%m', date) AS month,
-            SUM(income) AS income,
-            SUM(income - cost) AS profit
-     FROM income
-     GROUP BY month
-     ORDER BY month DESC`);
-});
+  if (date) {
+    query += ` AND date = ?`;
+    params.push(date);
+  }
+  if (billNumber) {
+    query += ` AND bill_number LIKE ?`;
+    params.push(`%${billNumber}%`);
+  }
 
-ipcMain.handle('get-total-income', async () => {
-    try {
-        const result = await getTotalIncomeDB();
-        return result; // Should be { totalIncome: number }
-    } catch (error) {
-        console.error('Error getting total income:', error);
-        throw error; // Propagate error to renderer
-    }
-});
-
-ipcMain.handle('get-total-expenses', async () => {
-    try {
-        const result = await getTotalExpensesDB();
-        return result; // Should be { totalExpenses: number }
-    } catch (error) {
-        console.error('Error getting total expenses:', error);
-        throw error;
-    }
-});
-
-ipcMain.handle('get-report-data', async (event, month) => {
-    try {
-        const result = await getReportDataDB(month);
-        return result;
-    } catch (error) {
-        console.error('Error getting report data:', error);
-        throw error;
-    }
+  return new Promise((resolve, reject) => {
+    db.all(query, params, (err, rows) => {
+      if (err) reject(err);
+      else resolve(rows);
+    });
+  });
 });

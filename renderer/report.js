@@ -1,125 +1,115 @@
 document.addEventListener('DOMContentLoaded', () => {
-  const monthPicker = flatpickr("#monthPicker", {
-    locale: "th",
-    plugins: [new monthSelectPlugin({
-      dateFormat: "m/Y",
-      altFormat: "F Y",
-      theme: "light"
-    })],
-    onChange: function (selectedDates, dateStr, instance) {
-      loadReportData(dateStr);
+  const searchDate = document.getElementById('searchDate');
+  const searchInput = document.getElementById('searchInput');
+  const searchBtn = document.getElementById('searchBtn');
+  const clearBtn = document.getElementById('clearBtn');
+  const monthPicker = document.getElementById('monthPicker');
+
+  const profitValue = document.getElementById('card-profit-value');
+  const costValue = document.getElementById('card-cost-value');
+  const revenueValue = document.getElementById('card-revenue-value');
+  const reportTableBody = document.getElementById('reportTableBody');
+  let chart;
+
+  flatpickr(monthPicker, {
+    locale: 'th',
+    plugins: [new monthSelectPlugin({ shorthand: true, dateFormat: "Y-m", altFormat: "F Y" })],
+    onChange: ([date]) => {
+      if (date) {
+        loadDashboardData(date.toISOString().slice(0, 7)); 
+      }
     }
   });
 
-  const ctx = document.getElementById('salesChart').getContext('2d');
-  new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: [],
-      datasets: [{
-        label: 'รายรับ',
-        data: [],
-        backgroundColor: 'rgba(59, 130, 246, 0.7)',
-        borderColor: 'rgba(59, 130, 246, 1)',
-        borderWidth: 1
-      }, {
-        label: 'กำไร',
-        data: [],
-        backgroundColor: 'rgba(16, 185, 129, 0.7)',
-        borderColor: 'rgba(16, 185, 129, 1)',
-        borderWidth: 1
-      }]
-    },
-    options: {
-      responsive: true,
-      scales: {
-        y: {
-          beginAtZero: true
+  searchBtn.addEventListener('click', async () => {
+    const date = searchDate.value;
+    const billNumber = searchInput.value;
+    const rows = await window.electronAPI.getReportData({ date, billNumber });
+    renderTable(rows);
+  });
+
+  clearBtn.addEventListener('click', () => {
+    searchDate.value = '';
+    searchInput.value = '';
+    reportTableBody.innerHTML = '';
+  });
+
+  async function loadDashboardData(month) {
+    const data = await window.electronAPI.getDashboardData(month);
+
+    revenueValue.textContent = `${formatBaht(data.summary?.income || 0)} บาท`;
+    const cost = (data.summary?.income || 0) * 0.4;
+    const profit = (data.summary?.income || 0) - cost;
+
+    costValue.textContent = `${formatBaht(cost)} บาท`;
+    profitValue.textContent = `${formatBaht(profit)} บาท`;
+
+    drawChart(data.daily);
+  }
+
+  function renderTable(rows) {
+    reportTableBody.innerHTML = '';
+    rows.forEach(row => {
+      const tr = document.createElement('tr');
+      const cost = row.amount * 0.4;
+      const profit = row.amount - cost;
+
+      tr.innerHTML = `
+        <td>${row.date}</td>
+        <td>${row.bill_number}</td>
+        <td>${row.item}</td>
+        <td>1</td>
+        <td>${formatBaht(row.amount)}</td>
+        <td>${formatBaht(row.amount)}</td>
+        <td>${formatBaht(profit)}</td>
+      `;
+      reportTableBody.appendChild(tr);
+    });
+  }
+
+  function drawChart(dailyData) {
+    const labels = dailyData.map(d => d.day);
+    const values = dailyData.map(d => d.income);
+
+    if (chart) chart.destroy();
+
+    const ctx = document.getElementById('salesChart').getContext('2d');
+    chart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [{
+          label: 'รายได้รายวัน',
+          data: values,
+          backgroundColor: 'rgba(54, 162, 235, 0.7)'
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { display: false }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              callback: value => `${value} บ.`
+            }
+          }
         }
       }
-    }
-  });
-
-  document.getElementById('searchBtn').addEventListener('click', () => {
-    const date = document.getElementById('searchDate').value;
-    const billNumber = document.getElementById('searchInput').value;
-    searchReports(date, billNumber);
-  });
-
-  document.getElementById('clearBtn').addEventListener('click', () => {
-    document.getElementById('searchDate').value = '';
-    document.getElementById('searchInput').value = '';
-    const now = new Date();
-    const currentMonthStr = `${now.getMonth() + 1}/${now.getFullYear()}`;
-    monthPicker.setDate(now, false);
-    loadReportData(currentMonthStr);
-  });
-
-  // Initial load for the current month
-  const now = new Date();
-  const currentMonthStr = `${now.getMonth() + 1}/${now.getFullYear()}`;
-  monthPicker.setDate(now, false); // Set picker to current month
-  loadReportData(currentMonthStr); // Load data for the current month
-});
-
-async function loadReportData(month = null) {
-  try {
-    const incomeData = await window.electronAPI.getTotalIncome();
-    const expenseData = await window.electronAPI.getTotalExpenses();
-
-    const totalIncome = incomeData?.totalIncome ?? 0;
-    const totalExpenses = expenseData?.totalExpenses ?? 0;
-    const totalProfit = totalIncome - totalExpenses;
-
-    document.getElementById('card-revenue-value').textContent = `${totalIncome.toLocaleString(undefined, { minimumFractionDigits: 2 })} บาท`;
-    document.getElementById('card-cost-value').textContent = `${totalExpenses.toLocaleString(undefined, { minimumFractionDigits: 2 })} บาท`;
-    document.getElementById('card-profit-value').textContent = `${totalProfit.toLocaleString(undefined, { minimumFractionDigits: 2 })} บาท`;
-
-    const reportDetails = await window.electronAPI.getReportData(month);
-
-    const chart = Chart.getChart('salesChart');
-    if (chart && reportDetails && reportDetails.chartData) {
-      chart.data.labels = reportDetails.chartData.labels;
-      if (chart.data.datasets[0]) {
-        chart.data.datasets[0].data = reportDetails.chartData.revenue;
-        chart.data.datasets[0].label = 'รายรับ';
-      }
-      if (chart.data.datasets[1]) {
-        chart.data.datasets[1].data = reportDetails.chartData.profit;
-      }
-      chart.update();
-    }
-
-    const tableBody = document.getElementById('reportTableBody');
-    tableBody.innerHTML = '';
-    if (reportDetails && reportDetails.tableData) {
-      tableBody.innerHTML = reportDetails.tableData.map(item => {
-        // Format date from YYYY-MM-DD to DD/MM/YYYY for display
-        const dateParts = item.date.split('-');
-        const displayDate = `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}`;
-
-        return `
-        <tr>
-          <td>${displayDate}</td>
-          <td>${item.billNumber || '-'}</td>
-          <td>${item.items}</td>
-          <td>${item.quantity !== undefined && item.quantity !== null ? item.quantity : '-'}</td>
-          <td>${item.price !== undefined && item.price !== null ? item.price.toLocaleString(undefined, { minimumFractionDigits: 2 }) : '-'}</td>
-          <td>${item.total.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-          <td>${item.profit !== undefined && item.profit !== null ? item.profit.toLocaleString(undefined, { minimumFractionDigits: 2 }) : '-'}</td>
-        </tr>
-      `}).join('');
-    }
-
-  } catch (error) {
-    console.error('Error loading report data:', error);
-    document.getElementById('card-revenue-value').textContent = 'Error';
-    document.getElementById('card-cost-value').textContent = 'Error';
-    document.getElementById('card-profit-value').textContent = 'Error';
+    });
   }
-}
 
-function searchReports(date, billNumber) {
-  console.log(`Searching for date: ${date}, bill number: ${billNumber}`);
-  // This function would need an IPC handler and DB query to be fully implemented.
-}
+  function formatBaht(number) {
+    return new Intl.NumberFormat('th-TH', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(number);
+  }
+
+  const now = new Date();
+  const currentMonth = now.toISOString().slice(0, 7); // yyyy-mm
+  monthPicker.value = currentMonth;
+  loadDashboardData(currentMonth);
+});
