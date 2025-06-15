@@ -225,56 +225,68 @@ handleIpc('delete-expense', async (event, expenseId) => {
 });
 
 ipcMain.handle('get-dashboard-data', async (event, month) => {
-  const dbAll = (query, params = []) => new Promise((resolve, reject) => {
-    db.all(query, params, (err, rows) => (err ? reject(err) : resolve(rows)));
-  });
-  const dbGet = (query, params = []) => new Promise((resolve, reject) => {
-    db.get(query, params, (err, row) => (err ? reject(err) : resolve(row)));
-  });
+    const dbAll = (query, params = []) => new Promise((resolve, reject) => {
+        db.all(query, params, (err, rows) => (err ? reject(err) : resolve(rows)));
+    });
+    const dbGet = (query, params = []) => new Promise((resolve, reject) => {
+        db.get(query, params, (err, row) => (err ? reject(err) : resolve(row)));
+    });
 
-  const daily = await dbAll(`
-    SELECT strftime('%d', date) AS day, SUM(amount) AS income
-    FROM income
+    // 1. รายได้รายวัน
+    const daily = await dbAll(`
+    SELECT strftime('%d', date) AS day, SUM(total_amount) AS income
+    FROM bills
     WHERE strftime('%Y-%m', date) = ?
-    GROUP BY day ORDER BY day
+    GROUP BY day
+    ORDER BY day
   `, [month]);
 
-  const summary = await dbGet(`
-    SELECT SUM(amount) AS income
-    FROM income
+    // 2. ยอดรวมรายเดือน
+    const summary = await dbGet(`
+    SELECT SUM(total_amount) AS income
+    FROM bills
     WHERE strftime('%Y-%m', date) = ?
   `, [month]);
 
-  const topProducts = await dbAll(`
-    SELECT item AS name, SUM(amount) AS total
-    FROM income
-    WHERE strftime('%Y-%m', date) = ?
-    GROUP BY item ORDER BY total DESC LIMIT 5
+    // 3. สินค้าขายดี
+    const topProducts = await dbAll(`
+    SELECT product_name AS name, SUM(quantity) AS total
+    FROM bill_items
+    WHERE bill_id IN (
+      SELECT id FROM bills WHERE strftime('%Y-%m', date) = ?
+    )
+    GROUP BY product_name
+    ORDER BY total DESC
+    LIMIT 5
   `, [month]);
 
-  return { daily, summary, topProducts };
+    return { daily, summary, topProducts };
 });
 
-// Report Table
 ipcMain.handle('get-report-data', async (event, filters) => {
-  const { date, billNumber } = filters;
+    const { date, billNumber } = filters;
 
-  let query = `SELECT * FROM income WHERE 1=1`;
-  const params = [];
+    let query = `
+    SELECT b.*, bi.product_name, bi.price, bi.quantity, bi.total
+    FROM bills b
+    LEFT JOIN bill_items bi ON b.id = bi.bill_id
+    WHERE 1=1
+  `;
+    const params = [];
 
-  if (date) {
-    query += ` AND date = ?`;
-    params.push(date);
-  }
-  if (billNumber) {
-    query += ` AND bill_number LIKE ?`;
-    params.push(`%${billNumber}%`);
-  }
+    if (date) {
+        query += ` AND b.date = ?`;
+        params.push(date);
+    }
+    if (billNumber) {
+        query += ` AND b.bill_number LIKE ?`;
+        params.push(`%${billNumber}%`);
+    }
 
-  return new Promise((resolve, reject) => {
-    db.all(query, params, (err, rows) => {
-      if (err) reject(err);
-      else resolve(rows);
+    return new Promise((resolve, reject) => {
+        db.all(query, params, (err, rows) => {
+            if (err) reject(err);
+            else resolve(rows);
+        });
     });
-  });
 });
