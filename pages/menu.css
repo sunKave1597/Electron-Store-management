@@ -70,3 +70,15 @@ body {
         min-height: 70px;
     }
 }
+
+.LogoutBtn {
+    background-color: #b90000;
+    color: white;
+    margin: 8px;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background-color 0.2s ease;
+}

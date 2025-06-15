@@ -315,54 +315,6 @@ ipcMain.handle('get-dashboard-data', async (event, month) => {
     LIMIT 5
   `, [month]);
 
-    return { success: true };
-});
-
-// Get Current User Session Handler
-ipcMain.handle('get-current-user-session', () => {
-    console.log('Returning current session:', currentUserSession);
-    return currentUserSession;
-});
-
-// Handle user login
-ipcMain.handle('login-user', async (_, credentials) => {
-    const { username, password } = credentials;
-
-    try {
-        // Fetch user from database
-        const user = await dbGet("SELECT * FROM users WHERE username = ?", [username]);
-
-        if (!user) {
-            throw new Error("ไม่พบผู้ใช้");
-        }
-
-        if (password !== user.password_hash) {
-            throw new Error("รหัสผ่านไม่ถูกต้อง");
-        }
-
-        // Set current user session
-        currentUserSession = {
-            id: user.id,
-            username: user.username,
-            role: user.role
-        };
-
-        console.log('Login successful:', currentUserSession);
-        return { success: true, ...currentUserSession };
-    } catch (err) {
-        console.error("Login failed:", err.message || err);
-        return { success: false, message: err.message || "เกิดข้อผิดพลาดในการเข้าสู่ระบบ" };
-    }
-});
-
-// Logout User Handler
-ipcMain.handle('logout-user', () => {
-    console.log('Logging out user. Current session before logout:', currentUserSession);
-    currentUserSession = null;
-    console.log('Session after logout:', currentUserSession);
-    if (mainWindow) {
-        mainWindow.loadFile(path.join(__dirname, 'pages', 'login.html')); // This navigation should be done from renderer via navigateToPage
-    }
     return { daily, summary, topProducts };
 });
 
@@ -392,4 +344,86 @@ ipcMain.handle('get-report-data', async (event, filters) => {
             else resolve(rows);
         });
     });
+});
+
+// Get Current User Session Handler
+ipcMain.handle('get-current-user-session', () => {
+    console.log('Returning current session:', currentUserSession);
+    return currentUserSession;
+});
+
+// Handle user login
+ipcMain.handle('login-user', async (_, credentials) => {
+    const { username, password } = credentials;
+
+    try {
+        // Fetch user from database
+        const user = await dbGet("SELECT * FROM users WHERE username = ?", [username]);
+
+        if (!user) {
+            throw new Error("ไม่พบผู้ใช้");
+        }
+
+        if (password !== user.password) {
+            throw new Error("รหัสผ่านไม่ถูกต้อง");
+        }
+
+        // Set current user session
+        currentUserSession = {
+            id: user.id,
+            username: user.username,
+            role: user.role
+        };
+
+        console.log('Login successful:', currentUserSession);
+        return { success: true, ...currentUserSession };
+    } catch (err) {
+        console.error("Login failed:", err.message || err);
+        return { success: false, message: err.message || "เกิดข้อผิดพลาดในการเข้าสู่ระบบ" };
+    }
+});
+
+// Logout User Handler
+ipcMain.handle('logout-user', () => {
+    console.log('Logging out user. Current session before logout:', currentUserSession);
+    currentUserSession = null;
+    console.log('Session after logout:', currentUserSession);
+    if (mainWindow) {
+        mainWindow.loadFile(path.join(__dirname, 'pages', 'login.html'));
+    }
+    return { success: true };
+});
+
+// Navigate to page handler
+ipcMain.handle('navigate-to-page', async (event, pageUrl) => {
+    if (!mainWindow) {
+        console.error('Error navigating to page: mainWindow is not defined.');
+        return { success: false, message: 'Main window is not available.' };
+    }
+
+    const userRole = currentUserSession ? currentUserSession.role : null;
+    const pageFilename = pageUrl; // Assuming pageUrl is just the filename like 'store.html'
+
+    // Define page access rules
+    const pageAccessRules = {
+        'admin': ['store.html', 'report.html', 'management.html', 'dashboard.html', 'expense.html', 'login.html', 'bill-history.html', 'bill-detail.html'], // Admin can access all pages
+        'staff': ['store.html', 'report.html', 'login.html', 'bill-history.html', 'bill-detail.html'] // Staff can access store and report pages
+        // Add other roles and their accessible pages here
+    };
+
+    const authorizedPages = pageAccessRules[userRole] || [];
+
+    if (userRole === 'admin' || authorizedPages.includes(pageFilename)) {
+        try {
+            await mainWindow.loadFile(path.join(__dirname, 'pages', pageFilename));
+            console.log(`User [${userRole}] navigated to ${pageFilename}`);
+            return { success: true, userRole: userRole };
+        } catch (error) {
+            console.error(`Error loading page ${pageFilename}:`, error);
+            return { success: false, message: `Failed to load page: ${error.message}` };
+        }
+    } else {
+        console.log(`User [${userRole}] is not authorized to access ${pageFilename}.`);
+        return { success: false, message: 'Access Denied. You do not have permission to view this page.' };
+    }
 });

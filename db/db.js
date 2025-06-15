@@ -98,7 +98,7 @@ db.serialize(() => {
       if (!row) {
         const plainPassword = "admin123";
         db.run(
-          "INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)",
+          "INSERT INTO users (username, password, role) VALUES (?, ?, ?)",
           ["admin", plainPassword, "admin"],
           function (err) {
             if (err) console.error("Error inserting admin user:", err);
