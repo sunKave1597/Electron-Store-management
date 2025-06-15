@@ -2,9 +2,11 @@ const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
 const { db, dbAll, dbGet, getTotalIncomeDB, getTotalExpensesDB, getReportDataDB } = require('./db/db');
 
+let currentUserSession = null;
+let mainWindow = null; // To store the main window instance
 
 function createWindow() {
-    const win = new BrowserWindow({
+    mainWindow = new BrowserWindow({
         width: 1600,
         height: 900,
         resizable: false,
@@ -15,10 +17,9 @@ function createWindow() {
         },
     });
 
-    win.webContents.openDevTools({ mode: "detach" });
-
-    win.setMenu(null);
-    win.loadFile('pages/menu.html');
+    mainWindow.webContents.openDevTools({ mode: "detach" });
+    mainWindow.setMenu(null);
+    mainWindow.loadFile(path.join(__dirname, 'pages', 'login.html'));
 }
 
 app.whenReady().then(createWindow);
@@ -74,64 +75,118 @@ handleIpc('delete-product', (_, id) => {
         });
     });
 });
-handleIpc('create-bill', async (_, billData) => {
-    const { billNumber, totalAmount, receivedAmount, changeAmount, items } = billData;
 
+// Promise wrapper for db.run
+const dbRun = (sql, params = []) => {
     return new Promise((resolve, reject) => {
-        const dbDate = getFormattedDate(); // Use standardized date format
-        db.serialize(() => {
-            db.run('BEGIN TRANSACTION');
-
-            db.run(
-                `INSERT INTO bills (bill_number, items, total_amount, received_amount, change_amount, date) 
-                 VALUES (?, ?, ?, ?, ?, ?)`,
-                [
-                    billNumber,
-                    items.map(item => `${item.productName} (${item.quantity})`).join(', '),
-                    totalAmount,
-                    receivedAmount,
-                    changeAmount,
-                    dbDate // Use standardized date
-                ],
-                function (err) {
-                    if (err) {
-                        db.run('ROLLBACK');
-                        return reject(err);
-                    }
-
-                    const billId = this.lastID;
-
-                    const stmt = db.prepare(
-                        `INSERT INTO bill_items (bill_id, product_id, product_name, price, quantity, total) 
-                         VALUES (?, ?, ?, ?, ?, ?)`
-                    );
-
-                    for (const item of items) {
-                        stmt.run(
-                            billId,
-                            item.productId,
-                            item.productName,
-                            item.price,
-                            item.quantity,
-                            item.total
-                        );
-                    }
-
-                    stmt.finalize((err) => {
-                        if (err) {
-                            db.run('ROLLBACK');
-                            return reject(err);
-                        }
-
-                        db.run('COMMIT', (err) => {
-                            if (err) return reject(err);
-                            resolve({ billId });
-                        });
-                    });
-                }
-            );
+        db.run(sql, params, function (err) {
+            if (err) {
+                console.error('DB Run Error:', err, 'SQL:', sql, 'Params:', params);
+                reject(err);
+            } else {
+                resolve(this); // 'this' contains lastID and changes
+            }
         });
     });
+};
+
+handleIpc('create-bill', async (_, billData) => {
+    const { billNumber, totalAmount, receivedAmount, changeAmount, items } = billData;
+    const dbDate = getFormattedDate();
+
+    try {
+        await dbRun('BEGIN TRANSACTION');
+
+        const billInsertResult = await dbRun(
+            `INSERT INTO bills (bill_number, items, total_amount, received_amount, change_amount, date) 
+       VALUES (?, ?, ?, ?, ?, ?)`,
+            [
+                billNumber,
+                items.map(item => `${item.productName} (${item.quantity})`).join(', '),
+                totalAmount,
+                receivedAmount,
+                changeAmount,
+                dbDate,
+            ]
+        );
+
+        const billId = billInsertResult.lastID;
+
+        for (const item of items) {
+            await dbRun(
+                `INSERT INTO bill_items (bill_id, product_id, product_name, price, quantity, total) 
+         VALUES (?, ?, ?, ?, ?, ?)`,
+                [billId, item.productId, item.productName, item.price, item.quantity, item.total]
+            );
+
+            // Stock update logic
+            const productRow = await dbGet('SELECT quantity FROM products WHERE id = ?', [item.productId]);
+            if (!productRow) {
+                await dbRun('ROLLBACK');
+                throw new Error(`สินค้าไม่พบ: ${item.productName} (ID: ${item.productId})`);
+            }
+
+            const currentQuantity = productRow.quantity;
+            const newQuantity = currentQuantity - item.quantity;
+
+            if (newQuantity < 0) {
+                await dbRun('ROLLBACK');
+                throw new Error(
+                    `สินค้าในคลังไม่เพียงพอสำหรับ: ${item.productName}. ที่มีอยู่: ${currentQuantity}, ต้องการ: ${item.quantity}`
+                );
+            }
+
+            const updateResult = await dbRun('UPDATE products SET quantity = ? WHERE id = ?', [newQuantity, item.productId]);
+            if (updateResult.changes === 0) {
+                await dbRun('ROLLBACK');
+                throw new Error(`ล้มเหลวในการอัปเดตสต็อกสำหรับสินค้า: ${item.productName} (ID: ${item.productId})`);
+            }
+        }
+
+        await dbRun('COMMIT');
+        return { billId };
+
+    } catch (error) {
+        // Ensure rollback is attempted if not already done by specific error handling
+        try {
+            await dbRun('ROLLBACK'); // This might fail if already rolled back, but it's a safeguard
+        } catch (rollbackError) {
+            console.error('Rollback error after initial error:', rollbackError);
+        }
+        console.error('Error in create-bill, transaction rolled back:', error.message);
+        // Re-throw the original error to be caught by handleIpc
+        throw error;
+    }
+});
+
+// Search Bills Handler
+ipcMain.handle('search-bills', async (event, { date, billNumber }) => {
+    try {
+        let query = `SELECT id, bill_number, items, total_amount, date, created_at FROM bills WHERE 1=1`;
+        const params = [];
+
+        if (date) {
+            query += ` AND date = ?`;
+            params.push(date);
+        }
+
+        if (billNumber && billNumber.trim() !== '') {
+            query += ` AND bill_number LIKE ?`;
+            params.push(`%${billNumber.trim()}%`);
+        }
+
+        query += ` ORDER BY created_at DESC`;
+
+        // Assuming dbAll is available and promise-based from db/db.js
+        // If dbAll is not available in this scope directly from require('./db/db'), 
+        // it might need to be defined locally like dbRun or ensured it's exported and imported correctly.
+        // For this exercise, assuming dbAll from const { ..., dbAll, ... } = require('./db/db'); works.
+        const rows = await dbAll(query, params);
+        return rows;
+    } catch (error) {
+        console.error('Error searching bills:', error);
+        throw error; // Re-throw to be caught by handleIpc generic error handler
+    }
 });
 
 handleIpc('get-bills', () => {
@@ -260,6 +315,54 @@ ipcMain.handle('get-dashboard-data', async (event, month) => {
     LIMIT 5
   `, [month]);
 
+    return { success: true };
+});
+
+// Get Current User Session Handler
+ipcMain.handle('get-current-user-session', () => {
+    console.log('Returning current session:', currentUserSession);
+    return currentUserSession;
+});
+
+// Handle user login
+ipcMain.handle('login-user', async (_, credentials) => {
+    const { username, password } = credentials;
+
+    try {
+        // Fetch user from database
+        const user = await dbGet("SELECT * FROM users WHERE username = ?", [username]);
+
+        if (!user) {
+            throw new Error("ไม่พบผู้ใช้");
+        }
+
+        if (password !== user.password_hash) {
+            throw new Error("รหัสผ่านไม่ถูกต้อง");
+        }
+
+        // Set current user session
+        currentUserSession = {
+            id: user.id,
+            username: user.username,
+            role: user.role
+        };
+
+        console.log('Login successful:', currentUserSession);
+        return { success: true, ...currentUserSession };
+    } catch (err) {
+        console.error("Login failed:", err.message || err);
+        return { success: false, message: err.message || "เกิดข้อผิดพลาดในการเข้าสู่ระบบ" };
+    }
+});
+
+// Logout User Handler
+ipcMain.handle('logout-user', () => {
+    console.log('Logging out user. Current session before logout:', currentUserSession);
+    currentUserSession = null;
+    console.log('Session after logout:', currentUserSession);
+    if (mainWindow) {
+        mainWindow.loadFile(path.join(__dirname, 'pages', 'login.html')); // This navigation should be done from renderer via navigateToPage
+    }
     return { daily, summary, topProducts };
 });
 

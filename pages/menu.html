@@ -12,11 +12,14 @@
     </div>
 
     <div class="menu-container">
-      <a href="store.html" class="menu-button">หน้าร้าน</a>
-      <a href="stock.html" class="menu-button">สต็อก</a>
-      <a href="income.html" class="menu-button">รายรับ</a>
-      <a href="expense.html" class="menu-button">รายจ่าย</a>
-      <a href="report.html" class="menu-button">รายงาน</a>
+      <button id="storeButton" class="menu-button">หน้าร้าน</button>
+      <button id="stockButton" class="menu-button">สต็อก</button>
+      <button id="incomeButton" class="menu-button">รายรับ</button>
+      <button id="expenseButton" class="menu-button">รายจ่าย</button>
+      <button id="reportButton" class="menu-button">รายงาน</button>
+      <button id="logoutButton" class="menu-button logout">ออกจากระบบ</button>
     </div>
+    <p id="errorMessage" class="error-message" style="text-align: center"></p>
+    <script src="../renderer/menu.js"></script>
   </body>
 </html>

@@ -13,6 +13,17 @@ const totalAmount = document.getElementById("totalAmount");
 const receivedAmount = document.getElementById("receivedAmount");
 const changeAmount = document.getElementById("changeAmount");
 const doneBtn = document.getElementById("doneBtn");
+const backBtn = document.getElementById('backBtn');
+
+if (backBtn) {
+    backBtn.addEventListener('click', () => {
+        if (window.electronAPI && window.electronAPI.navigateToPage) {
+            window.electronAPI.navigateToPage('menu.html').catch(err => console.error('Navigation error:', err));
+        } else {
+            console.error('electronAPI.navigateToPage is not available.');
+        }
+    });
+}
 
 const today = new Date();
 const options = { year: "numeric", month: "2-digit", day: "2-digit" };

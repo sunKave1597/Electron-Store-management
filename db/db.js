@@ -77,8 +77,37 @@ db.serialize(() => {
     );
   `);
 
-
-
+  // Create users table
+  db.run(`
+    CREATE TABLE IF NOT EXISTS users (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      username TEXT UNIQUE NOT NULL,
+      password TEXT NOT NULL,
+      role TEXT NOT NULL CHECK(role IN ('admin', 'staff'))
+    );
+  `, (err) => {
+    if (err) {
+      console.error("Error creating users table:", err);
+      return;
+    }
+    db.get("SELECT * FROM users WHERE username = ?", ["admin"], (err, row) => {
+      if (err) {
+        console.error("Error checking for admin user:", err);
+        return;
+      }
+      if (!row) {
+        const plainPassword = "admin123";
+        db.run(
+          "INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)",
+          ["admin", plainPassword, "admin"],
+          function (err) {
+            if (err) console.error("Error inserting admin user:", err);
+            else console.log("Default admin user inserted with plain password.");
+          }
+        );
+      }
+    });
+  });
 
   db.get("SELECT COUNT(*) AS count FROM products", [], (err, row) => {
     if (err) {

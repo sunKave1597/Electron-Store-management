@@ -1,3 +1,14 @@
+const backBtn = document.getElementById('backBtn');
+if (backBtn) {
+  backBtn.addEventListener('click', () => {
+    if (window.electronAPI && window.electronAPI.navigateToPage) {
+      window.electronAPI.navigateToPage('menu.html').catch(err => console.error('Navigation error:', err));
+    } else {
+      console.error('electronAPI.navigateToPage is not available.');
+    }
+  });
+}
+
 const addExpenseBtn = document.getElementById('addExpenseBtn');
 const expenseModal = document.getElementById('expenseModal');
 const closeExpenseModal = document.getElementById('closeExpenseModal');

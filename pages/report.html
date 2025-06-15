@@ -1,84 +1,89 @@
 <!DOCTYPE html>
 <html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <title>รายงาน</title>
+    <link rel="stylesheet" href="./report.css" />
+    <link rel="stylesheet" href="./common.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/monthSelect/style.css"
+    />
+  </head>
 
-<head>
-  <meta charset="UTF-8" />
-  <title>รายงาน</title>
-  <link rel="stylesheet" href="./report.css" />
-  <link rel="stylesheet" href="./common.css" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/monthSelect/style.css" />
-
-</head>
-
-<body>
-  <button id="backBtn" class="backBtn" onclick="window.location.href='./menu.html'">
-    กลับ
-  </button>
-  <div class="container">
-    <div class="header">
-      <h1 class="title">รายงาน</h1>
-    </div>
-
-    <div class="search-bar">
-      <label for="searchDate">ค้นหาวันที่</label>
-      <input type="date" id="searchDate" />
-
-      <label for="searchBillNumber">ค้นหาเลขบิล:</label>
-      <input type="text" id="searchInput" placeholder="เช่น 1234" />
-
-      <button id="searchBtn" class="onClik-btn">ค้นหา</button>
-      <button id="clearBtn" class="clear-btn">ล้าง</button>
-    </div>
-
-    <div class="cards-container">
-      <div class="card">
-        <h1>กำไร</h1>
-        <div id="card-profit-value">0 บาท</div>
+  <body>
+    <button id="backBtn" class="backBtn">กลับ</button>
+    <div class="container">
+      <div class="header">
+        <h1 class="title">รายงาน</h1>
       </div>
-      <div class="card">
-        <h1>ทุน</h1>
-        <div id="card-cost-value">0 บาท</div>
+
+      <div class="search-bar">
+        <label for="searchDate">ค้นหาวันที่</label>
+        <input type="date" id="searchDate" />
+
+        <label for="searchBillNumber">ค้นหาเลขบิล:</label>
+        <input type="text" id="searchInput" placeholder="เช่น 1234" />
+
+        <button id="searchBtn" class="onClik-btn">ค้นหา</button>
+        <button id="clearBtn" class="clear-btn">ล้าง</button>
       </div>
-      <div class="card">
-        <h1>รายได้</h1>
-        <div id="card-revenue-value">0 บาท</div>
+
+      <div class="cards-container">
+        <div class="card">
+          <h1>กำไร</h1>
+          <div id="card-profit-value">0 บาท</div>
+        </div>
+        <div class="card">
+          <h1>ทุน</h1>
+          <div id="card-cost-value">0 บาท</div>
+        </div>
+        <div class="card">
+          <h1>รายได้</h1>
+          <div id="card-revenue-value">0 บาท</div>
+        </div>
+      </div>
+
+      <div class="month-filter">
+        <label for="monthPicker">เลือกเดือน</label>
+        <input
+          type="text"
+          id="monthPicker"
+          class="flatpickr-month"
+          placeholder="เลือกเดือน"
+        />
+      </div>
+
+      <div class="chart-container">
+        <canvas id="salesChart"></canvas>
+      </div>
+
+      <div class="table-container">
+        <table id="reportTable">
+          <thead>
+            <tr>
+              <th>วันที่</th>
+              <th>เลขบิล</th>
+              <th>รายการ</th>
+              <th>จำนวน</th>
+              <th>ราคาต่อหน่วย</th>
+              <th>รวม</th>
+              <th>กำไร</th>
+            </tr>
+          </thead>
+          <tbody id="reportTableBody"></tbody>
+        </table>
       </div>
     </div>
 
-    <div class="month-filter">
-      <label for="monthPicker">เลือกเดือน</label>
-      <input type="text" id="monthPicker" class="flatpickr-month" placeholder="เลือกเดือน" />
-    </div>
-
-
-    <div class="chart-container">
-      <canvas id="salesChart"></canvas>
-    </div>
-
-    <div class="table-container">
-      <table id="reportTable">
-        <thead>
-          <tr>
-            <th>วันที่</th>
-            <th>เลขบิล</th>
-            <th>รายการ</th>
-            <th>จำนวน</th>
-            <th>ราคาต่อหน่วย</th>
-            <th>รวม</th>
-            <th>กำไร</th>
-          </tr>
-        </thead>
-        <tbody id="reportTableBody"></tbody>
-      </table>
-    </div>
-  </div>
-
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-  <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/th.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/monthSelect/index.js"></script>
-  <script src="../renderer/report.js"></script>
-</body>
-
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/th.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/monthSelect/index.js"></script>
+    <script src="../renderer/report.js"></script>
+  </body>
 </html>
