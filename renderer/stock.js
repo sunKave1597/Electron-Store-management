@@ -44,17 +44,17 @@ document.addEventListener('DOMContentLoaded', () => {
         if (name && !isNaN(quantity) && !isNaN(price)) {
             window.electronAPI.addProduct(name, quantity, price)
                 .then(() => {
-                    alert('Product added successfully!');
+                    alert('เพิ่มสินค้าเสร็จสิ้น');
                     modal.style.display = 'none';
                     productForm.reset();
                     loadProducts();
                 })
                 .catch((err) => {
-                    alert('Error adding product: ' + err.message);
+                    alert('ผิดพลาดสินค้า: ' + err.message);
                 });
         } else {
-            alert('Please fill all fields with valid values');
-        }
+            alert('กรุณากรอกข้อมูลให้ครบถ้วนและถูกต้อง');
+        } s
     });
 
     // Load products
@@ -63,8 +63,8 @@ document.addEventListener('DOMContentLoaded', () => {
             products = rows;
             renderTable();
         }).catch((err) => {
-            console.error('Failed to load products:', err);
-            alert('Failed to load products: ' + err.message);
+            console.error('โหลดข้อมูลผิดพลาด:', err);
+            alert('โหลดข้อมูลผิดพลาด: ' + err.message);
         });
     }
 
@@ -104,14 +104,14 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.addEventListener('click', (e) => {
                 const id = parseInt(e.target.dataset.id);
 
-                if (confirm('Are you sure you want to delete this product?')) {
+                if (confirm('คุณแน่ใจว่าต้องการลบสินค้านี้?')) {
                     window.electronAPI.deleteProduct(id)
                         .then(() => {
-                            alert('Product deleted successfully!');
+                            alert('ลบสินค้าสำเร็จ');
                             loadProducts();
                         })
                         .catch((err) => {
-                            alert('Error deleting product: ' + err.message);
+                            alert('ผิดพลาด: ' + err.message);
                         });
                 }
             });

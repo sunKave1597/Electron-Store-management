@@ -203,11 +203,15 @@ doneBtn.addEventListener("click", async () => {
         };
 
         await window.electronAPI.createBill(billData);
-        alert("บันทึกบิลเรียบร้อยแล้ว");
+        alert("บันทึกบิลเสร็จสิ้น");
         window.location.reload();
     } catch (err) {
         console.error("Failed to save bill:", err);
-        alert("เกิดข้อผิดพลาดในการบันทึกบิล");
+        if (err && err.message && err.message.includes("สินค้าในคลังไม่เพียง")) {
+            alert("สินค้าในคลังไม่เพียงพอ");
+        } else {
+            alert("เกิดข้อผิดพลาดในการบันทึกบิล");
+        }
     }
 });
 

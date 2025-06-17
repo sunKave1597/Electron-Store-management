@@ -72,7 +72,7 @@ expenseForm.addEventListener('submit', (event) => {
   }
   try {
     window.electronAPI.addExpense({ item, amount, date });
-    alert('บันทึกค่าใช้จ่ายเรียบร้อยแล้ว!');
+    alert('บันทึกค่าใช้จ่ายเสร็จสิ้น!');
     loadExpenses();
   } catch (err) {
     console.error('เกิดข้อผิดพลาด:', err);

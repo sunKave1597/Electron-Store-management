@@ -105,7 +105,7 @@ function renderBillsTable(billsData) {
                         // Instead of button.closest('tr').remove(), we should re-fetch or filter current data
                         // For simplicity now, just reload all data. Could be optimized.
                         loadIncomeData();
-                        alert('ลบบิลเรียบร้อยแล้ว');
+                        alert('ลบบิลเสร็จสิ้น');
                     })
                     .catch(error => {
                         console.error('Error deleting bill:', error);
