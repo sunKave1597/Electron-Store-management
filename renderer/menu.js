@@ -44,9 +44,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         if (session.role === 'staff') {
             console.log('User is staff, hiding restricted buttons.');
-            if (stockButton) stockButton.style.display = 'none';
             if (incomeButton) incomeButton.style.display = 'none';
-            if (expenseButton) expenseButton.style.display = 'none';
         }
     } catch (error) {
         console.error('Error getting user session:', error);

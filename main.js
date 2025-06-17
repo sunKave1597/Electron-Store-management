@@ -315,7 +315,13 @@ ipcMain.handle('get-dashboard-data', async (event, month) => {
     LIMIT 5
   `, [month]);
 
-    return { daily, summary, topProducts };
+    const cost = await dbGet(`
+    SELECT SUM(amount) AS total
+    FROM expense
+    WHERE strftime('%Y-%m', date) = ?
+  `, [month]);
+
+    return { daily, summary, topProducts, cost };
 });
 
 ipcMain.handle('get-report-data', async (event, filters) => {
@@ -407,7 +413,7 @@ ipcMain.handle('navigate-to-page', async (event, pageUrl) => {
     // Define page access rules
     const pageAccessRules = {
         'admin': ['store.html', 'report.html', 'management.html', 'dashboard.html', 'expense.html', 'login.html', 'bill-history.html', 'bill-detail.html'], // Admin can access all pages
-        'staff': ['store.html', 'report.html', 'login.html', 'bill-history.html', 'bill-detail.html'] // Staff can access store and report pages
+        'staff': ['store.html', 'report.html', 'login.html', 'stock.html', 'expense.html', 'bill-history.html', 'bill-detail.html'] // Staff can access store and report pages
         // Add other roles and their accessible pages here
     };
 

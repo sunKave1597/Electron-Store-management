@@ -4,17 +4,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const searchBtn = document.getElementById('searchBtn');
   const clearBtn = document.getElementById('clearBtn');
   const monthPicker = document.getElementById('monthPicker');
-  const backBtn = document.getElementById('backBtn');
-
-  if (backBtn) {
-    backBtn.addEventListener('click', () => {
-      if (window.electronAPI && window.electronAPI.navigateToPage) {
-        window.electronAPI.navigateToPage('menu.html').catch(err => console.error('Navigation error:', err));
-      } else {
-        console.error('electronAPI.navigateToPage is not available.');
-      }
-    });
-  }
 
   const profitValue = document.getElementById('card-profit-value');
   const costValue = document.getElementById('card-cost-value');
@@ -35,14 +24,8 @@ document.addEventListener('DOMContentLoaded', () => {
   searchBtn.addEventListener('click', async () => {
     const date = searchDate.value;
     const billNumber = searchInput.value;
-    try {
-      const rows = await window.electronAPI.getReportData({ date, billNumber });
-      renderTable(rows);
-    } catch (error) {
-      console.error('Error fetching report data:', error);
-      reportTableBody.innerHTML = '<tr><td colspan="7" style="text-align: center;">เกิดข้อผิดพลาดในการโหลดข้อมูล</td></tr>';
-      // Optionally, display a more user-friendly error message elsewhere on the page
-    }
+    const rows = await window.electronAPI.getReportData({ date, billNumber });
+    renderTable(rows);
   });
 
   clearBtn.addEventListener('click', () => {
@@ -55,7 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const data = await window.electronAPI.getDashboardData(month);
 
     revenueValue.textContent = `${formatBaht(data.summary?.income || 0)} บาท`;
-    const cost = (data.summary?.income || 0) * 0.4;
+    const cost = data.cost?.total || 0;
     const profit = (data.summary?.income || 0) - cost;
 
     costValue.textContent = `${formatBaht(cost)} บาท`;
@@ -65,28 +48,22 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function renderTable(rows) {
-    reportTableBody.innerHTML = ''; // Clear existing rows
-
-    if (!Array.isArray(rows) || rows.length === 0) {
-      const tr = reportTableBody.insertRow();
-      const td = tr.insertCell();
-      td.colSpan = 7; // Corresponds to the number of columns
-      td.textContent = 'ไม่พบข้อมูล';
-      td.style.textAlign = 'center';
-      return;
-    }
-
+    reportTableBody.innerHTML = '';
     rows.forEach(row => {
-      const tr = reportTableBody.insertRow();
+      const tr = document.createElement('tr');
+      const cost = row.amount * 0.4;
+      const profit = row.amount - cost;
+
       tr.innerHTML = `
-        <td>${row.date || 'N/A'}</td>
-        <td>${row.bill_number || 'N/A'}</td>
-        <td>${row.product_name || 'N/A'}</td>
-        <td>${row.quantity !== null && row.quantity !== undefined ? row.quantity : 'N/A'}</td>
-        <td>${row.price !== null && row.price !== undefined ? formatBaht(row.price) : 'N/A'}</td>
-        <td>${row.total !== null && row.total !== undefined ? formatBaht(row.total) : 'N/A'}</td>
-        <td>N/A</td> {/* Profit column as per requirement */}
+        <td>${row.date}</td>
+        <td>${row.bill_number}</td>
+        <td>${row.item}</td>
+        <td>1</td>
+        <td>${formatBaht(row.amount)}</td>
+        <td>${formatBaht(row.amount)}</td>
+        <td>${formatBaht(profit)}</td>
       `;
+      reportTableBody.appendChild(tr);
     });
   }
 
