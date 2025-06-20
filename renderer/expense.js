@@ -87,15 +87,14 @@ expenseForm.addEventListener('submit', (event) => {
 
 });
 
-// Function to display expenses in the table
 function displayExpenses(expensesToDisplay) {
   const tbody = document.querySelector('#productsTable tbody');
-  tbody.innerHTML = ''; // Clear existing rows
+  tbody.innerHTML = '';
 
-  let totalExpense = 0; // Initialize total expense
+  let totalExpense = 0;
 
   expensesToDisplay.forEach((expense) => {
-    totalExpense += (expense.amount ?? 0); // Accumulate total amount
+    totalExpense += (expense.amount ?? 0);
     const row = document.createElement('tr');
     row.innerHTML = `
       <td>${expense.date}</td>
@@ -115,7 +114,7 @@ function displayExpenses(expensesToDisplay) {
 async function loadExpenses() {
   try {
     const expenses = await window.electronAPI.getExpenses();
-    displayExpenses(expenses); // This will now also update the card
+    displayExpenses(expenses);
   } catch (error) {
     console.error('Error loading expenses:', error);
     alert('เกิดข้อผิดพลาดในการโหลดรายการค่าใช้จ่าย');
@@ -125,14 +124,13 @@ async function loadExpenses() {
 async function deleteExpense(expenseId) {
   try {
     await window.electronAPI.deleteExpense(expenseId);
-    loadExpenses(); // Refresh the table
+    loadExpenses();
   } catch (error) {
     console.error('Error deleting expense:', error);
     alert('เกิดข้อผิดพลาดในการลบรายการค่าใช้จ่าย');
   }
 }
 
-// Search and Clear Search Functionality
 const searchBtn = document.getElementById('searchBtn');
 const clearSearchBtn = document.getElementById('clearSearchBtn');
 const searchDateInput = document.getElementById('searchDate');

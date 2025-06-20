@@ -40,7 +40,7 @@ function renderBillsTable(billsData) {
                 <td>${(bill.total_amount ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
                 <td>
                     <button class="delete-btn" data-id="${bill.id}">ลบ</button>
-                    <button class="onClik-btn view-bill-btn" data-id="${bill.id}">ดู</button> 
+                    <button class="onClik-btn view-bill-btn" data-id="${bill.id}">รายละเอียด</button> 
                 </td>`;
             // Note: Renamed the class for view buttons in table to 'view-bill-btn' to avoid conflict with main search button
         });
