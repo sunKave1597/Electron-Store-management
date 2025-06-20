@@ -84,7 +84,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td>${product.name}</td>
                 <td>${product.quantity}</td>
                 <td>${product.price}</td>
-                <td><button class="delete-btn" data-id="${product.id}">Delete</button></td>
+                <td><button class="delete-btn" data-id="${product.id}">ลบ</button></td>
             `;
 
             productsTableBody.appendChild(tr);
