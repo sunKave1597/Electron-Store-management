@@ -100,7 +100,7 @@ function displayExpenses(expensesToDisplay) {
       <td>${expense.date}</td>
       <td>${expense.item}</td>
       <td>${(expense.amount ?? 0).toFixed(2)}</td>
-      <td><button class="delete-btn" data-id="${expense.id}">ลบ</button></td>
+      ${currentUserRole !== 'staff' ? `<td><button class="delete-btn" data-id="${expense.id}">ลบ</button></td>` : ''}
     `;
     tbody.appendChild(row);
   });
@@ -183,15 +183,57 @@ clearSearchBtn.addEventListener('click', () => {
 });
 
 
+let currentUserRole = null; // Variable to store the user's role
+
+// Function to adjust UI elements based on role for expense page
+function adjustExpenseUIForRole() {
+  if (currentUserRole === 'staff') {
+    const manageHeader = document.getElementById('expenseManageHeader');
+    if (manageHeader) {
+      manageHeader.style.display = 'none';
+    }
+  }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
-  loadExpenses();
-  populateExpenseItemDropdown(); // Populate dropdown on page load
+  if (window.electronAPI && window.electronAPI.getCurrentUserSession) {
+    window.electronAPI.getCurrentUserSession().then(session => {
+      if (session && session.role) {
+        currentUserRole = session.role;
+        console.log('Current user role (expense page):', currentUserRole);
+      } else {
+        console.error('Could not retrieve user session or role for expense page.');
+      }
+      // Load expenses and adjust UI regardless of session status,
+      // but role-specific adjustments depend on currentUserRole being set.
+      loadExpenses();
+      adjustExpenseUIForRole(); // Adjust UI based on the fetched role
+      populateExpenseItemDropdown();
+    }).catch(err => {
+      console.error('Error fetching user session for expense page:', err);
+      // Fallback in case of error
+      loadExpenses();
+      adjustExpenseUIForRole();
+      populateExpenseItemDropdown();
+    });
+  } else {
+    console.error('electronAPI.getCurrentUserSession is not available on expense page.');
+    // Fallback if API is not available
+    loadExpenses();
+    adjustExpenseUIForRole();
+    populateExpenseItemDropdown();
+  }
 });
 
 // Event delegation for delete buttons
 const productsTableBody = document.querySelector('#productsTable tbody');
 productsTableBody.addEventListener('click', (event) => {
   if (event.target.classList.contains('delete-btn')) {
+    // Prevent staff from deleting
+    if (currentUserRole === 'staff') {
+      alert('คุณไม่มีสิทธิ์ลบรายการนี้');
+      return;
+    }
     const expenseId = event.target.dataset.id;
     if (confirm('คุณแน่ใจหรือไม่ว่าต้องการลบรายการนี้?')) {
       deleteExpense(expenseId);
