@@ -7,6 +7,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const productForm = document.getElementById('productForm');
     const backBtn = document.getElementById('backBtn');
 
+    let currentUserRole = null; // Variable to store the user's role
+
     if (backBtn) {
         backBtn.addEventListener('click', () => {
             if (window.electronAPI && window.electronAPI.navigateToPage) {
@@ -19,6 +21,42 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     let products = [];
+
+    // Fetch current user session to get the role
+    if (window.electronAPI && window.electronAPI.getCurrentUserSession) {
+        window.electronAPI.getCurrentUserSession().then(session => {
+            if (session && session.role) {
+                currentUserRole = session.role;
+                console.log('Current user role:', currentUserRole);
+                // Initial load and UI adjustments after fetching role
+                loadProducts();
+                adjustUIForRole();
+            } else {
+                console.error('Could not retrieve user session or role.');
+                // Fallback if session or role is not available, load products anyway
+                loadProducts();
+            }
+        }).catch(err => {
+            console.error('Error fetching user session:', err);
+            // Fallback in case of error, load products anyway
+            loadProducts();
+        });
+    } else {
+        console.error('electronAPI.getCurrentUserSession is not available.');
+        loadProducts();
+    }
+
+    function adjustUIForRole() {
+        if (currentUserRole === 'staff') {
+            if (addProductBtn) {
+                addProductBtn.style.display = 'none';
+            }
+            const manageHeader = document.getElementById('manageHeader');
+            if (manageHeader) {
+                manageHeader.style.display = 'none';
+            }
+        }
+    }
 
     addProductBtn.addEventListener('click', () => {
         modal.style.display = 'block';
@@ -78,27 +116,32 @@ document.addEventListener('DOMContentLoaded', () => {
 
         filtered.forEach((product, index) => {
             const tr = document.createElement('tr');
-
-            tr.innerHTML = `
+            let rowHTML = `
                 <td>${index + 1}</td>
                 <td>${product.name}</td>
                 <td>${product.quantity}</td>
                 <td>${product.price}</td>
-                <td><button class="delete-btn" data-id="${product.id}">ลบ</button></td>
             `;
 
+            if (currentUserRole !== 'staff') {
+                rowHTML += `<td><button class="delete-btn" data-id="${product.id}">ลบ</button></td>`;
+            } else {
+
+            }
+
+            tr.innerHTML = rowHTML;
             productsTableBody.appendChild(tr);
         });
 
-        attachDeleteHandlers();
+        if (currentUserRole !== 'staff') {
+            attachDeleteHandlers();
+        }
     }
 
-    // Search handler
     searchInput.addEventListener('input', (e) => {
         renderTable(e.target.value);
     });
 
-    // Delete button handlers
     function attachDeleteHandlers() {
         document.querySelectorAll('.delete-btn').forEach((btn) => {
             btn.addEventListener('click', (e) => {
@@ -118,6 +161,4 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Initial load
-    loadProducts();
 });
