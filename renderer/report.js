@@ -16,23 +16,48 @@ document.addEventListener('DOMContentLoaded', () => {
     plugins: [new monthSelectPlugin({ shorthand: true, dateFormat: "Y-m", altFormat: "F Y" })],
     onChange: ([date]) => {
       if (date) {
-        loadDashboardData(date.toISOString().slice(0, 7));
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0'); // บวก 1 เพราะ getMonth() เริ่มที่ 0
+        const formatted = `${year}-${month}`;
+        loadDashboardData(formatted);
       }
     }
+  });
+  const monthRange = document.getElementById('monthRange');
+
+  flatpickr(monthRange, {
+    locale: 'th',
+    mode: 'range',
+    plugins: [new monthSelectPlugin({ shorthand: true, dateFormat: "Y-m", altFormat: "F Y" })],
+  });
+  searchMTableBtn.addEventListener('click', async () => {
+    const range = monthRange.value.split(' ถึง ');
+    const startMonth = range[0];
+    const endMonth = range[1];
+
+    const rows = await window.electronAPI.getReportData({ startMonth, endMonth });
+    renderTable(rows);
+  });
+  clearBtnMtableBtn.addEventListener('click', () => {
+    monthRange.value = '';
+    loadAllReports();
   });
 
   searchBtn.addEventListener('click', async () => {
     const date = searchDate.value;
     const billNumber = searchInput.value;
     const rows = await window.electronAPI.getReportData({ date, billNumber });
+    console.log(rows);
     renderTable(rows);
   });
+
 
   clearBtn.addEventListener('click', () => {
     searchDate.value = '';
     searchInput.value = '';
-    reportTableBody.innerHTML = '';
+    loadAllReports(); // โหลดข้อมูลใหม่ทั้งหมด
   });
+
 
   async function loadDashboardData(month) {
     const data = await window.electronAPI.getDashboardData(month);
@@ -51,21 +76,18 @@ document.addEventListener('DOMContentLoaded', () => {
     reportTableBody.innerHTML = '';
     rows.forEach(row => {
       const tr = document.createElement('tr');
-      const cost = row.amount * 0.4;
-      const profit = row.amount - cost;
-
       tr.innerHTML = `
-        <td>${row.date}</td>
-        <td>${row.bill_number}</td>
-        <td>${row.item}</td>
-        <td>1</td>
-        <td>${formatBaht(row.amount)}</td>
-        <td>${formatBaht(row.amount)}</td>
-        <td>${formatBaht(profit)}</td>
-      `;
+      <td>${row.month}</td>
+      <td>${row.bill_count}</td>
+      <td>${formatBaht(row.total_income)}</td>
+      <td>${formatBaht(row.total_cost)}</td>
+      <td>${formatBaht(row.total_profit)}</td>
+    `;
       reportTableBody.appendChild(tr);
     });
   }
+
+
 
   function drawChart(dailyData) {
     const labels = dailyData.map(d => d.day);
@@ -109,7 +131,13 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   const now = new Date();
-  const currentMonth = now.toISOString().slice(0, 7); // yyyy-mm
+  const currentMonth = now.toISOString().slice(0, 7);
   monthPicker.value = currentMonth;
   loadDashboardData(currentMonth);
+
+  async function loadAllReports() {
+    const rows = await window.electronAPI.getReportData({ date: '', billNumber: '' });
+    renderTable(rows);
+  }
+  loadAllReports();
 });

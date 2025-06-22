@@ -325,32 +325,39 @@ ipcMain.handle('get-dashboard-data', async (event, month) => {
 });
 
 ipcMain.handle('get-report-data', async (event, filters) => {
-    const { date, billNumber } = filters;
+  const { startMonth, endMonth } = filters;
+  const params = [];
+  let whereClause = "";
 
-    let query = `
-    SELECT b.*, bi.product_name, bi.price, bi.quantity, bi.total
-    FROM bills b
-    LEFT JOIN bill_items bi ON b.id = bi.bill_id
-    WHERE 1=1
-  `;
-    const params = [];
+  if (startMonth && endMonth) {
+    whereClause = `
+      WHERE strftime('%Y-%m', b.date) BETWEEN ? AND ?
+    `;
+    params.push(startMonth, endMonth);
+  }
 
-    if (date) {
-        query += ` AND b.date = ?`;
-        params.push(date);
-    }
-    if (billNumber) {
-        query += ` AND b.bill_number LIKE ?`;
-        params.push(`%${billNumber}%`);
-    }
-
-    return new Promise((resolve, reject) => {
-        db.all(query, params, (err, rows) => {
-            if (err) reject(err);
-            else resolve(rows);
-        });
+  const rows = await new Promise((resolve, reject) => {
+    db.all(`
+      SELECT 
+        strftime('%Y-%m', b.date) AS month,
+        COUNT(DISTINCT b.id) AS bill_count,
+        SUM(b.total_amount) AS total_income,
+        SUM(bi.total * 0.4) AS total_cost,
+        SUM(b.total_amount - (bi.total * 0.4)) AS total_profit
+      FROM bills b
+      LEFT JOIN bill_items bi ON b.id = bi.bill_id
+      ${whereClause}
+      GROUP BY month
+      ORDER BY month DESC
+    `, params, (err, rows) => {
+      if (err) reject(err);
+      else resolve(rows);
     });
+  });
+
+  return rows;
 });
+
 
 // Get Current User Session Handler
 ipcMain.handle('get-current-user-session', () => {
