@@ -10,6 +10,7 @@ if (backBtn) {
 }
 
 const addExpenseBtn = document.getElementById('addExpenseBtn');
+const addExpenseBtnStock = document.getElementById('addExpenseBtnStock');
 const expenseModal = document.getElementById('expenseModal');
 const closeExpenseModal = document.getElementById('closeExpenseModal');
 const expenseForm = document.getElementById('expenseForm');
@@ -20,8 +21,6 @@ async function populateExpenseItemDropdown() {
   try {
     const products = await window.electronAPI.getProducts();
     expenseItemSelect.innerHTML = ''; // Clear existing options
-
-    // Add a default placeholder option
     const placeholderOption = document.createElement('option');
     placeholderOption.value = '';
     placeholderOption.textContent = 'เลือกสินค้า';
@@ -31,13 +30,12 @@ async function populateExpenseItemDropdown() {
 
     products.forEach(product => {
       const option = document.createElement('option');
-      option.value = product.name; // Assuming product.name is the desired value
+      option.value = product.name;
       option.textContent = product.name;
       expenseItemSelect.appendChild(option);
     });
   } catch (error) {
     console.error('Error populating expense items:', error);
-    // Handle error, e.g., show a message to the user
   }
 }
 
@@ -83,10 +81,7 @@ expenseForm.addEventListener('submit', (event) => {
 
   expenseForm.reset();
   expenseModal.style.display = 'none';
-
-
 });
-
 function displayExpenses(expensesToDisplay) {
   const tbody = document.querySelector('#productsTable tbody');
   tbody.innerHTML = '';
