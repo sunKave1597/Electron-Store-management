@@ -440,3 +440,21 @@ ipcMain.handle('navigate-to-page', async (event, pageUrl) => {
         return { success: false, message: 'Access Denied. You do not have permission to view this page.' };
     }
 });
+
+ipcMain.handle('update-product-quantity', async (event, productId, newQuantity) => {
+  return new Promise((resolve, reject) => {
+    db.run(
+      `UPDATE products SET quantity = ? WHERE id = ?`,
+      [newQuantity, productId],
+      function (err) {
+        if (err) {
+          console.error('Error updating quantity:', err);
+          reject(err);
+        } else {
+          resolve({ success: true });
+        }
+      }
+    );
+  });
+});
+

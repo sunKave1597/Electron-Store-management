@@ -20,5 +20,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   navigateToPage: (pageUrl) => ipcRenderer.invoke('navigate-to-page', pageUrl),
   getCurrentUserSession: () => ipcRenderer.invoke('get-current-user-session'),
   logoutUser: () => ipcRenderer.invoke('logout-user'),
-  searchBills: (criteria) => ipcRenderer.invoke('search-bills', criteria)
+  searchBills: (criteria) => ipcRenderer.invoke('search-bills', criteria), 
+  updateProductQuantity: (id, quantity) => ipcRenderer.invoke('update-product-quantity', id, quantity)
+
 });

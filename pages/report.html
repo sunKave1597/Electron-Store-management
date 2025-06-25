@@ -55,20 +55,20 @@
     </div>
 <div class="search-bar">
   <label for="monthRange">ช่วงเดือน:</label>
-  <input type="text" id="monthRange" placeholder="เลือกช่วงเดือน" />
+  <input type="text" id="monthRange" class="flatpickr-month-range" placeholder="เลือกช่วงเดือน" style="width: 180px; padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; font-size: 1rem;" />
   <button id="searchMTableBtn" class="onClik-btn">ค้นหา</button>
   <button id="clearBtnMtableBtn" class="clear-btn">ล้าง</button>
 </div>
 
-    <div class="table-container">
+    <div class="table-container" style="margin-top: 20px;">
       <table id="reportTable">
         <thead>
           <tr>
-            <th>เดือน</th>
-            <th>จำนวนบิล</th>
-            <th>รายได้รวม</th>
-            <th>ต้นทุนรวม</th>
-            <th>กำไรรวม</th>
+            <th style="font-size: 1.5rem;">เดือน</th>
+            <th style="font-size: 1.5rem;">จำนวนบิล</th>
+            <th style="font-size: 1.5rem;">รายได้รวม</th>
+            <th style="font-size: 1.5rem;">ต้นทุนรวม</th>
+            <th style="font-size: 1.5rem;">กำไรรวม</th>
           </tr>
         </thead>
         <tbody id="reportTableBody"></tbody>
