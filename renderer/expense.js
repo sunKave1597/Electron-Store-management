@@ -81,10 +81,7 @@ expenseForm.addEventListener('submit', (event) => {
 
   expenseForm.reset();
   expenseModal.style.display = 'none';
-
-
 });
-
 function displayExpenses(expensesToDisplay) {
   const tbody = document.querySelector('#productsTable tbody');
   tbody.innerHTML = '';
