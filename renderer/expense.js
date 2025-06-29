@@ -1,3 +1,11 @@
+const addExpenseBtn = document.getElementById('addExpenseBtn');
+const expenseModal = document.getElementById('expenseModal');
+const closeExpenseModal = document.getElementById('closeExpenseModal');
+const expenseForm = document.getElementById('expenseForm');
+const expenseDateInput = document.getElementById('expenseDate');
+const expenseItemSelect = document.getElementById('expenseItem');
+
+
 const backBtn = document.getElementById('backBtn');
 if (backBtn) {
   backBtn.addEventListener('click', () => {
@@ -9,19 +17,10 @@ if (backBtn) {
   });
 }
 
-const addExpenseBtn = document.getElementById('addExpenseBtn');
-const expenseModal = document.getElementById('expenseModal');
-const closeExpenseModal = document.getElementById('closeExpenseModal');
-const expenseForm = document.getElementById('expenseForm');
-const expenseDateInput = document.getElementById('expenseDate');
-const expenseItemSelect = document.getElementById('expenseItem');
-
 async function populateExpenseItemDropdown() {
   try {
     const products = await window.electronAPI.getProducts();
-    expenseItemSelect.innerHTML = ''; // Clear existing options
-
-    // Add a default placeholder option
+    expenseItemSelect.innerHTML = ''; 
     const placeholderOption = document.createElement('option');
     placeholderOption.value = '';
     placeholderOption.textContent = 'เลือกสินค้า';
@@ -31,20 +30,19 @@ async function populateExpenseItemDropdown() {
 
     products.forEach(product => {
       const option = document.createElement('option');
-      option.value = product.name; // Assuming product.name is the desired value
+      option.value = product.name; 
       option.textContent = product.name;
       expenseItemSelect.appendChild(option);
     });
   } catch (error) {
     console.error('Error populating expense items:', error);
-    // Handle error, e.g., show a message to the user
   }
 }
 
 addExpenseBtn.addEventListener('click', () => {
   const today = new Date().toISOString().substr(0, 10);
   expenseDateInput.value = today;
-  populateExpenseItemDropdown(); // Populate dropdown when modal opens
+  populateExpenseItemDropdown();
   expenseModal.style.display = 'block';
 });
 
@@ -143,49 +141,41 @@ searchBtn.addEventListener('click', async () => {
     const dateQuery = searchDateInput.value;
     const itemQuery = searchItemInput.value.toLowerCase();
     const amountQuery = searchAmountInput.value;
-
     const filteredExpenses = allExpenses.filter(expense => {
       let matchesDate = true;
       if (dateQuery) {
         matchesDate = expense.date === dateQuery;
       }
-
       let matchesItem = true;
       if (itemQuery) {
         matchesItem = expense.item.toLowerCase().includes(itemQuery);
       }
-
       let matchesAmount = true;
       if (amountQuery) {
         const amountValue = parseFloat(amountQuery);
         if (!isNaN(amountValue)) {
           matchesAmount = expense.amount === amountValue;
         } else {
-          // If amountQuery is not a valid number, it shouldn't match anything if user intended to filter by amount
           matchesAmount = false;
         }
       }
       return matchesDate && matchesItem && matchesAmount;
     });
-
     displayExpenses(filteredExpenses);
   } catch (error) {
     console.error('Error searching expenses:', error);
     alert('เกิดข้อผิดพลาดในการค้นหารายการ');
   }
 });
-
 clearSearchBtn.addEventListener('click', () => {
   searchDateInput.value = '';
   searchItemInput.value = '';
   searchAmountInput.value = '';
-  loadExpenses(); // Reload all expenses
+  loadExpenses(); 
 });
 
+let currentUserRole = null; 
 
-let currentUserRole = null; // Variable to store the user's role
-
-// Function to adjust UI elements based on role for expense page
 function adjustExpenseUIForRole() {
   if (currentUserRole === 'staff') {
     const manageHeader = document.getElementById('expenseManageHeader');
@@ -204,32 +194,26 @@ document.addEventListener('DOMContentLoaded', () => {
       } else {
         console.error('Could not retrieve user session or role for expense page.');
       }
-      // Load expenses and adjust UI regardless of session status,
-      // but role-specific adjustments depend on currentUserRole being set.
       loadExpenses();
-      adjustExpenseUIForRole(); // Adjust UI based on the fetched role
+      adjustExpenseUIForRole(); 
       populateExpenseItemDropdown();
     }).catch(err => {
       console.error('Error fetching user session for expense page:', err);
-      // Fallback in case of error
       loadExpenses();
       adjustExpenseUIForRole();
       populateExpenseItemDropdown();
     });
   } else {
     console.error('electronAPI.getCurrentUserSession is not available on expense page.');
-    // Fallback if API is not available
     loadExpenses();
     adjustExpenseUIForRole();
     populateExpenseItemDropdown();
   }
 });
 
-// Event delegation for delete buttons
 const productsTableBody = document.querySelector('#productsTable tbody');
 productsTableBody.addEventListener('click', (event) => {
   if (event.target.classList.contains('delete-btn')) {
-    // Prevent staff from deleting
     if (currentUserRole === 'staff') {
       alert('คุณไม่มีสิทธิ์ลบรายการนี้');
       return;
@@ -238,5 +222,85 @@ productsTableBody.addEventListener('click', (event) => {
     if (confirm('คุณแน่ใจหรือไม่ว่าต้องการลบรายการนี้?')) {
       deleteExpense(expenseId);
     }
+  }
+});
+const addExistingExpenseBtn = document.getElementById('addExistingExpenseBtn');
+const expenseModalExisting = document.getElementById('expenseModalExisting');
+const closeExpenseModalExisting = document.getElementById('closeExpenseModalExisting');
+const existingItemSearch = document.getElementById('existingItemSearch');
+const existingItemList = document.getElementById('existingItemList');
+const existingQuantity = document.getElementById('existingQuantity');
+const existingPrice = document.getElementById('existingPrice');
+const existingDate = document.getElementById('existingDate');
+const expenseFormExisting = document.getElementById('expenseFormExisting');
+let productNames = []; 
+
+addExistingExpenseBtn.addEventListener('click', async () => {
+  expenseModalExisting.style.display = 'block';
+  existingQuantity.value = 1;
+  existingPrice.value = 0;
+  existingDate.value = new Date().toISOString().slice(0, 10);
+  existingItemSearch.value = '';
+  existingItemList.innerHTML = '';
+
+  try {
+    const products = await window.electronAPI.getProducts();
+    productNames = products.map(p => p.name);
+  } catch (err) {
+    alert('โหลดข้อมูลสินค้าไม่สำเร็จ');
+    console.error(err);
+  }
+});
+
+closeExpenseModalExisting.addEventListener('click', () => {
+  expenseModalExisting.style.display = 'none';
+  existingItemList.innerHTML = '';
+});
+
+window.addEventListener('click', (e) => {
+  if (e.target === expenseModalExisting) {
+    expenseModalExisting.style.display = 'none';
+    existingItemList.innerHTML = '';
+  }
+});
+
+existingItemSearch.addEventListener('input', function () {
+  const val = this.value.toLowerCase();
+  existingItemList.innerHTML = '';
+  if (!val) return;
+
+  const filtered = productNames.filter(name => name.toLowerCase().includes(val));
+  filtered.forEach(name => {
+    const div = document.createElement('div');
+    div.classList.add('autocomplete-item');
+    div.textContent = name;
+    div.addEventListener('click', () => {
+      existingItemSearch.value = name;
+      existingItemList.innerHTML = '';
+    });
+    existingItemList.appendChild(div);
+  });
+});
+
+expenseFormExisting.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const item = existingItemSearch.value.trim();
+  const quantity = parseInt(existingQuantity.value, 10);
+  const price = parseFloat(existingPrice.value);
+  const date = existingDate.value;
+  if (!item || quantity <= 0 || isNaN(price) || price < 0 || !date) {
+    alert('กรุณากรอกข้อมูลให้ครบถ้วนและถูกต้อง');
+    return;
+  }
+  const amount = quantity;
+  const pricetotal = quantity * price;
+  try {
+    await window.electronAPI.addExistingExpense({ item, amount, date , pricetotal });
+    alert('บันทึกรายการเดิมสำเร็จ');
+    expenseModalExisting.style.display = 'none';
+    loadExpenses();
+  } catch (err) {
+    console.error('Error adding existing expense:', err);
+    alert('บันทึกรายการเดิมไม่สำเร็จ');
   }
 });

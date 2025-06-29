@@ -441,20 +441,53 @@ ipcMain.handle('navigate-to-page', async (event, pageUrl) => {
     }
 });
 
-ipcMain.handle('update-product-quantity', async (event, productId, newQuantity) => {
+ipcMain.handle('update-product', async (event, productId, name, quantity, price) => {
   return new Promise((resolve, reject) => {
     db.run(
-      `UPDATE products SET quantity = ? WHERE id = ?`,
-      [newQuantity, productId],
+      `UPDATE products SET name = ?, quantity = ?, price = ? WHERE id = ?`,
+      [name, quantity, price, productId],
       function (err) {
         if (err) {
-          console.error('Error updating quantity:', err);
+          console.error('Error updating product:', err);
           reject(err);
         } else {
           resolve({ success: true });
         }
       }
     );
+  });
+});
+
+
+ipcMain.handle('add-existing-expense', async (event, data) => {
+  const { item, amount, date , pricetotal} = data;
+
+  return new Promise((resolve, reject) => {
+    db.serialize(() => {
+      db.run(
+        `INSERT INTO expense (item, amount, date) VALUES (?, ?, ?)`,
+        [item, pricetotal, date],
+        function (err) {
+          if (err) {
+            console.error("Failed to insert expense:", err);
+            reject(err);
+            return;
+          }
+          db.run(
+            `UPDATE products SET quantity = quantity + ? WHERE name = ?`,
+            [amount, item],
+            function (err2) {
+              if (err2) {
+                console.error("Failed to update product quantity:", err2);
+                reject(err2);
+              } else {
+                resolve({ success: true });
+              }
+            }
+          );
+        }
+      );
+    });
   });
 });
 

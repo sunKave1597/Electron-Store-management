@@ -82,24 +82,27 @@ addProductBtn.addEventListener('click', () => {
     });
 
 updateQtyBtn.addEventListener('click', () => {
+  const name = document.getElementById('productName').value;
   const quantity = parseInt(document.getElementById('productQuantity').value);
+  const price = parseFloat(document.getElementById('productPrice').value);
 
-  if (!isNaN(quantity) && editingProductId !== null) {
-    window.electronAPI.updateProductQuantity(editingProductId, quantity)
-      .then(() => {
-        alert('อัปเดตจำนวนสำเร็จ');
-        modal.style.display = 'none';
-        editingProductId = null;
-        productForm.reset();
-        loadProducts();
-      })
-      .catch((err) => {
-        alert('อัปเดตผิดพลาด: ' + err.message);
-      });
-  } else {
-    alert('กรุณากรอกจำนวนที่ถูกต้อง');
+  if (!name || isNaN(quantity) || isNaN(price) || editingProductId === null) {
+    alert('กรุณากรอกข้อมูลให้ครบถ้วนและถูกต้อง');
+    return;
   }
+  window.electronAPI.updateProduct(editingProductId, name, quantity, price)
+    .then(() => {
+      alert('อัปเดตสินค้าเรียบร้อย');
+      modal.style.display = 'none';
+      editingProductId = null;
+      productForm.reset();
+      loadProducts();
+    })
+    .catch((err) => {
+      alert('อัปเดตผิดพลาด: ' + err.message);
+    });
 });
+
 
 
     function loadProducts() {
@@ -136,35 +139,24 @@ updateQtyBtn.addEventListener('click', () => {
             tr.innerHTML = rowHTML;
             productsTableBody.appendChild(tr);
         });
-
         if (currentUserRole !== 'staff') {
             attachDeleteHandlers();
             attachEditHandlers();
         }
     }
-
     function attachEditHandlers() {
   document.querySelectorAll('.edit-btn').forEach((btn) => {
     btn.addEventListener('click', (e) => {
       const index = parseInt(e.target.dataset.index);
       const product = products[index];
-
       editingProductId = product.id;
-
-      // ตั้งค่าฟอร์ม
       document.getElementById('productName').value = product.name;
       document.getElementById('productPrice').value = product.price;
       document.getElementById('productQuantity').value = product.quantity;
-
-      // ห้ามแก้ชื่อและราคา
-      document.getElementById('productName').disabled = true;
-      document.getElementById('productPrice').disabled = true;
-
-      // toggle ปุ่ม
+      document.getElementById('productName').disabled = false;
+      document.getElementById('productPrice').disabled = false;
       saveBtn.style.display = 'none';
       updateQtyBtn.style.display = 'inline-block';
-
-      // แสดง modal
       modal.style.display = 'block';
     });
   });

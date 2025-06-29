@@ -11,16 +11,15 @@ if (backBtn) {
     });
 }
 
-// Main search button on the page (not in table)
 const pageSearchButton = document.getElementById('onClik-btn');
 const searchDateInput = document.getElementById('searchDate');
-const searchBillNumberInput = document.getElementById('searchInput'); // Assuming this is the ID for bill number search
+const searchBillNumberInput = document.getElementById('searchInput'); 
 const clearButton = document.getElementById('clear-btn');
 
 
 function renderBillsTable(billsData) {
     const tableBody = document.querySelector('#productsTable tbody');
-    tableBody.innerHTML = ''; // Clear existing rows
+    tableBody.innerHTML = ''; 
 
     let totalIncome = 0;
 
